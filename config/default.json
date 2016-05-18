@@ -15,6 +15,7 @@
       }
     }
   },
+  "run_logshipping_jobs": true,
   "service": {
     "host": "0.0.0.0",
     "http_port": 8000,
