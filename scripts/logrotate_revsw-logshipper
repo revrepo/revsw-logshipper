@@ -1,0 +1,11 @@
+/opt/revsw-logshipper/log/*.log
+{
+    copytruncate
+    create 755 root root
+    weekly
+    rotate 4
+    compress
+    missingok
+    notifempty
+    copytruncate
+}

@@ -1,0 +1,60 @@
+{
+  "name": "revsw-logshipper",
+  "author": "Rev Software, Inc",
+  "version": "1.0.0",
+  "description": "Rev Log Shipping Service",
+  "keywords": [
+    "api",
+    "revsw",
+    "log-shipping"
+  ],
+  "scripts": {
+    "start": "nodejs bin/revsw-logshipper.js",
+    "server": "node bin/revsw-logshipper.js",
+    "lint": "jshint -c .jshintrc lib/*.js bin/*.js; jshint -c config/.jshintrc config/default.json config/production.json config/qa.json",
+    "test": "mocha test"
+  },
+  "dependencies": {
+    "bluebird": "^3.0.5",
+    "boom": "2.7.x",
+    "config": "^1.16.0",
+    "elasticsearch": "^8.2.0",
+    "forever-monitor": "^1.7.0",
+    "hapi": "8.4.x",
+    "hapi-auth-basic": "~3.0.0",
+    "hapi-authorization": "^2.1.3",
+    "hapi-router": "^3.3.0",
+    "hapi-swagger": "^0.8.1",
+    "hoek": "2.10.x",
+    "joi": "^6.1.2",
+    "joi-objectid": "~1.1.0",
+    "lodash": "^3.10.1",
+    "minimum-tls-version": "0.0.3",
+    "moment": "^2.12.0",
+    "mongodb": "^2.1.18",
+    "winston": "^2.2.0"
+  },
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "mocha": "^2.3.4",
+    "mocha.parallel": "^0.11.2",
+    "should": "^7.1.1",
+    "should-http": "0.0.4",
+    "supertest": "^1.1.0",
+    "supertest-as-promised": "^2.0.2",
+    "request": "^2.67.0",
+    "gulp": "^3.9.0",
+    "gulp-jshint": "^2.0.0",
+    "gulp-mocha": "^2.2.0",
+    "gulp-util": "^3.0.7",
+    "yargs": "^3.31.0",
+    "jshint": "^2.8.0",
+    "jshint-stylish": "^2.1.0",
+    "ghooks": "^1.0.3"
+  },
+  "config": {
+    "ghooks": {
+      "pre-commit": "npm run lint"
+    }
+  }
+}
