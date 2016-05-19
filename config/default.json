@@ -23,7 +23,7 @@
     "key_path": "./config/dev_ssl_certs/server.key",
     "cert_path": "./config/dev_ssl_certs/server.crt",
     "logshipper_db": {
-      "connection": "mongodb://localhost:27017/logshipper",
+      "connection": "mongodb://TESTSJC20-LS01.REVSW.NET:27017/logshipper",
       "domain_log_collection": "DomainsLog",
       "app_log_collection": "AppsLog"
     },
