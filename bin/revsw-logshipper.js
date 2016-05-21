@@ -37,11 +37,10 @@ if ( config.run_logshipping_jobs === true ) {
   var logshipper = require( '../lib/dispatcher');
 
   logger.info( 'Starting Log Shipping Service' );
+  logshipper.run();
   setInterval( function() {
-
     logshipper.run();
-
-  }, config.logs_shipping_span );
+  }, ( config.logs_shipping_span_sec * 1000 ) );
 
 } else {
   logger.info( 'Log Shipping Service is disabled per configuration' );
