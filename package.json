@@ -15,11 +15,13 @@
     "test": "mocha test"
   },
   "dependencies": {
+    "adm-zip": "^0.4.7",
     "bluebird": "^3.0.5",
     "boom": "2.7.x",
     "config": "^1.16.0",
     "elasticsearch": "^8.2.0",
     "forever-monitor": "^1.7.0",
+    "ftps": "^0.4.7",
     "hapi": "8.4.x",
     "hapi-auth-basic": "~3.0.0",
     "hapi-authorization": "^2.1.3",

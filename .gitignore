@@ -16,3 +16,4 @@ config/local.json
 config/local-*.json
 sandbox/*
 test/config/*
+uploads/*
