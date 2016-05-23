@@ -27,8 +27,8 @@
     "app_collection": "App",
     "domain_collection": "DomainConfig"
   },
-  "logs_shipping_span_sec": 300,
-  "logs_shipping_reserve_sec": 150,
+  "logs_shipping_span_sec": 60,
+  "logs_shipping_reserve_sec": 300,
   "logs_shipping_standoff_sec": 30,
   "uploads_dir": "uploads",
   "ftp_failed_delay": 5000,

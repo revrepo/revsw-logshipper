@@ -27,8 +27,8 @@ var logger = require('revsw-logger')(config.log);
 var promise = require('bluebird');
 
 //  ---------------------------------
-var logshipper_db = require( '../lib/logshipper_db');
-var revportal_db = require( '../lib/revportal_db');
+var logshipperDB = require( '../lib/logshipperDB');
+var revportalDB = require( '../lib/revportalDB');
 
 //  ----------------------------------------------------------------------------------------------//
 
@@ -36,8 +36,8 @@ exports.healthcheck = function( request, reply ) {
 
   // logger.info( 'healthcheck!' );
   promise.all([
-      revportal_db.health(),
-      logshipper_db.health()
+      revportalDB.health(),
+      logshipperDB.health()
     ])
     .then( function( states ) {
       var res = {
