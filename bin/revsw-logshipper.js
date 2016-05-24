@@ -31,14 +31,20 @@ var Hapi = require('hapi'),
 
 //  log shipper ----------------------------------------------------------------------------------//
 
-var logshipper = require( '../lib/dispatcher');
-setInterval( function() {
 
+if ( config.run_logshipping_jobs === true ) {
+
+  var logshipper = require( '../lib/dispatcher');
+
+  logger.info( 'Starting Log Shipping Service' );
   logshipper.run();
+  setInterval( function() {
+    logshipper.run();
+  }, ( config.logs_shipping_span_sec * 1000 ) );
 
-}, config.logs_shipping_span );
-
-
+} else {
+  logger.info( 'Log Shipping Service is disabled per configuration' );
+}
 
 //  simple api server ----------------------------------------------------------------------------//
 
