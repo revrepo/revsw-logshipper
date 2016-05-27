@@ -17,3 +17,5 @@ config/local-*.json
 sandbox/*
 test/config/*
 uploads/*
+package_build_dir/
+packages

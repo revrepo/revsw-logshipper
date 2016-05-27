@@ -37,7 +37,7 @@ case "$1" in
 
                 log_action_msg "Starting Rev LogShipping server" || true
                 cd $base_path
-                forever start --fifo --append -o $base_path/log/api.log bin/revsw-logshipper.js > $base_path/log/api.log 2>&1
+                forever start --fifo --append -o $base_path/log/logshipper.log bin/revsw-logshipper.js > $base_path/log/logshipper.log 2>&1
         ;;
         stop)
                 log_daemon_msg "Stopping all Rev LogShipping services..." || true

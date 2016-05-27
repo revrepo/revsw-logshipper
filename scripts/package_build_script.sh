@@ -68,6 +68,7 @@ cp -rp $WORKSPACE/scripts/init.d_revsw-logshipper  $foldername/etc/init.d/revsw-
 cp -rp $WORKSPACE/scripts/logrotate_revsw-logshipper $foldername/etc/logrotate.d/revsw-logshipper
 
 mkdir -p $foldername/opt/$PackageName/config
+mkdir -p $foldername/opt/$PackageName/uploads
 
 cp -rf  $WORKSPACE/bin  $foldername/opt/$PackageName/
 cp -rf  $WORKSPACE/lib  $foldername/opt/$PackageName/

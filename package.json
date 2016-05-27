@@ -34,7 +34,8 @@
     "minimum-tls-version": "0.0.3",
     "moment": "^2.12.0",
     "mongodb": "^2.1.18",
-    "winston": "^2.2.0"
+    "winston": "^2.2.0",
+    "revsw-logger": "git@github.com:/revrepo/revsw-logger"
   },
   "devDependencies": {
     "chai": "^3.4.1",
