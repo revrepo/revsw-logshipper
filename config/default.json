@@ -16,6 +16,7 @@
     }
   },
   "run_logshipping_jobs": true,
+  "version_file": "./config/version.txt",
   "logshipper_db": {
     "connection": "mongodb://TESTSJC20-LS01.REVSW.NET:27017/logshipper",
     "domain_log_collection": "DomainsLog",
