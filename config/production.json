@@ -1,0 +1,18 @@
+{
+  "log": {
+    "transports": {
+      "Console": {
+        "level": "warn",
+        "colorize": true,
+        "prettyPrint": true,
+        "humanReadableUnhandledException": true,
+        "showLevel": true
+      },
+      "File": {
+        "filename": "./log/revsw-logshipper.log",
+        "level": "info",
+        "prettyPrint": true
+      }
+    }
+  }
+}
