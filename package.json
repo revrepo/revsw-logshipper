@@ -32,10 +32,11 @@
     "joi-objectid": "~1.1.0",
     "lodash": "^3.10.1",
     "minimum-tls-version": "0.0.3",
+    "mkdirp": "^0.5.1",
     "moment": "^2.12.0",
     "mongodb": "^2.1.18",
-    "winston": "^2.2.0",
-    "revsw-logger": "git@github.com:/revrepo/revsw-logger"
+    "revsw-logger": "git@github.com:/revrepo/revsw-logger",
+    "winston": "^2.2.0"
   },
   "devDependencies": {
     "chai": "^3.4.1",

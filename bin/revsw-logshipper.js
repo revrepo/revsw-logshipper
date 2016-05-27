@@ -22,7 +22,7 @@
 //  ----------------------------------------------------------------------------------------------//
 
 var Hapi = require('hapi'),
-  Swagger = require('hapi-swagger'),
+  // Swagger = require('hapi-swagger'),
   fs = require('fs'),
   config = require( 'config'),
   logger = require( 'revsw-logger' )( config.log ),
@@ -34,8 +34,12 @@ var Hapi = require('hapi'),
 
 if ( config.run_logshipping_jobs === true ) {
 
-  var logshipper = require( '../lib/dispatcher');
+  var mkdirp = require('mkdirp');
+  var stuff = require( '../lib/commons');
+  //  create `uploads` directory
+  mkdirp.sync( stuff.toUploadsPath( '' ) );
 
+  var logshipper = require( '../lib/dispatcher');
   logger.info( 'Starting Log Shipping Service' );
   logshipper.run();
   setInterval( function() {
