@@ -39,21 +39,21 @@
   },
   "devDependencies": {
     "chai": "^3.4.1",
-    "mocha": "^2.3.4",
-    "mocha.parallel": "^0.11.2",
-    "should": "^7.1.1",
-    "should-http": "0.0.4",
-    "supertest": "^1.1.0",
-    "supertest-as-promised": "^2.0.2",
-    "request": "^2.67.0",
+    "ghooks": "^1.2.1",
     "gulp": "^3.9.0",
     "gulp-jshint": "^2.0.0",
     "gulp-mocha": "^2.2.0",
     "gulp-util": "^3.0.7",
-    "yargs": "^3.31.0",
     "jshint": "^2.8.0",
     "jshint-stylish": "^2.1.0",
-    "ghooks": "^1.0.3"
+    "mocha": "^2.3.4",
+    "mocha.parallel": "^0.11.2",
+    "request": "^2.67.0",
+    "should": "^7.1.1",
+    "should-http": "0.0.4",
+    "supertest": "^1.1.0",
+    "supertest-as-promised": "^2.0.2",
+    "yargs": "^3.31.0"
   },
   "config": {
     "ghooks": {
