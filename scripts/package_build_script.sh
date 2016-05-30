@@ -67,7 +67,7 @@ mkdir -p $foldername/etc/init.d  $foldername/etc/logrotate.d
 mkdir -p $foldername/etc/rsyslog.d
 cp -rp $WORKSPACE/scripts/init.d_revsw-logshipper  $foldername/etc/init.d/revsw-logshipper
 cp -rp $WORKSPACE/scripts/logrotate_revsw-logshipper $foldername/etc/logrotate.d/revsw-logshipper
-cp -rp $WORKSPACE/scripts/syslog-logshipper.conf $foldername/etc/rsyslog.d/logshipper.conf
+# cp -rp $WORKSPACE/scripts/syslog-logshipper.conf $foldername/etc/rsyslog.d/logshipper.conf
 
 mkdir -p $foldername/opt/$PackageName/config
 mkdir -p $foldername/opt/$PackageName/uploads

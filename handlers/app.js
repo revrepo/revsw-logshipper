@@ -27,6 +27,7 @@ var logger = require('revsw-logger')(config.log);
 var promise = require('bluebird');
 
 //  ---------------------------------
+var stuff = require( '../lib/commons' );
 var logshipperDB = require( '../lib/logshipperDB');
 var revportalDB = require( '../lib/revportalDB');
 
@@ -34,20 +35,45 @@ var revportalDB = require( '../lib/revportalDB');
 
 exports.healthcheck = function( request, reply ) {
 
-  // logger.info( 'healthcheck!' );
-  promise.all([
-      revportalDB.health(),
-      logshipperDB.health()
-    ])
-    .then( function( states ) {
-      var res = {
-        data: {
-          revportal_database: states[0],
-          logshipper_database: states[1]
-        }
-      };
-      reply( res ).type('application/json; charset=utf-8');
-    });
+  var fs = promise.promisifyAll( require('fs') );
+  var version = 'undefined';
 
+  promise.resolve()
+    .then( function() {
+      return promise.all([
+          revportalDB.health(),
+          logshipperDB.health(),
+          fs.readFileAsync( stuff.toRootPath( config.version_file ), { encoding: 'utf8' })
+        ]);
+    })
+    .then( function( states ) {
+      version = states[2].trim();
+      var msg = [];
+      if ( !states[0].good ) {
+        msg.push( states[0].msg )
+      }
+      if ( !states[1].good ) {
+        msg.push( states[1].msg )
+      }
+      if ( msg.length ) {
+        msg = msg.join('; ');
+        reply( boom.badImplementation( msg, {
+          message: msg,
+          version: version
+        } ) );
+      } else {
+        reply({
+          message: 'Everything is OK',
+          version: version
+        });
+      }
+    })
+    .catch( function( err ) {
+      var msg = err.toString();
+      reply( boom.badImplementation( msg, {
+        message: msg,
+        version: version
+      } ) );
+    });
 };
 

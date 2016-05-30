@@ -17,6 +17,14 @@
   },
   "run_logshipping_jobs": true,
   "version_file": "./config/version.txt",
+  "rsyslog": {
+    "config_src": "scripts/syslog-logshipper.conf",
+    "config_dest": "/etc/rsyslog-logshipper.d/logshipper.conf",
+    "HUP_pause": 5000,
+    "pid_file": "/var/run/rsyslog.pid",
+    "restart_command": "service rsyslog restart",
+    "domains_list_tag": "{{DomainsConditionListTAG}}"
+  },
   "logshipper_db": {
     "connection": "mongodb://TESTSJC20-LS01.REVSW.NET:27017/logshipper",
     "domain_log_collection": "DomainsLog",
