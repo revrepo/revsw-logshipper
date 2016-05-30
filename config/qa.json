@@ -12,6 +12,7 @@
   },
   "uploads_dir": "/opt/revsw-logshipper/uploads",
   "service": {
-
+    "key_path": "./config/ssl_certs/server.key",
+    "cert_path": "./config/ssl_certs/server.crt"
   }
 }
