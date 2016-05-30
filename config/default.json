@@ -23,7 +23,8 @@
     "HUP_pause": 5000,
     "pid_file": "/var/run/rsyslog.pid",
     "restart_command": "service rsyslog restart",
-    "domains_list_tag": "{{DomainsConditionListTAG}}"
+    "domains_list_tag": "{{DomainsConditionListTAG}}",
+    "header_comment_tag": "{{HeaderCommentTAG}}"
   },
   "logshipper_db": {
     "connection": "mongodb://TESTSJC20-LS01.REVSW.NET:27017/logshipper",
