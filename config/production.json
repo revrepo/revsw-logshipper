@@ -15,6 +15,17 @@
       }
     }
   },
+  "logshipper_db": {
+    "connection": "mongodb://localhost:27017/logshipper",
+    "domain_log_collection": "DomainsLog",
+    "app_log_collection": "AppsLog"
+  },
+  "revportal_db": {
+    "connection": "mongodb://IAD02-CMDB01.REVSW.NET:27017/revportal?replicaSet=CMDB-rs0",
+    "job_collection": "LogShippingJob",
+    "app_collection": "App",
+    "domain_collection": "DomainConfig"
+  },
   "uploads_dir": "/opt/revsw-logshipper/uploads",
   "service": {
     "key_path": "./config/ssl_certs/server.key",
