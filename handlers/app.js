@@ -50,10 +50,10 @@ exports.healthcheck = function( request, reply ) {
       version = states[2].trim();
       var msg = [];
       if ( !states[0].good ) {
-        msg.push( states[0].msg )
+        msg.push( states[0].msg );
       }
       if ( !states[1].good ) {
-        msg.push( states[1].msg )
+        msg.push( states[1].msg );
       }
       if ( msg.length ) {
         msg = msg.join('; ');
