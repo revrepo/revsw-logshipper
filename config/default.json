@@ -21,8 +21,11 @@
     "config_src": "scripts/syslog-logshipper.conf",
     "config_dest": "/etc/rsyslog-logshipper.d/logshipper.conf",
     "HUP_pause": 5000,
-    "pid_file": "/var/run/rsyslog.pid",
+    "pid_file": "/var/run/rsyslogd.pid",
+    "status_command": "service rsyslog status",
     "restart_command": "service rsyslog restart",
+    "running_status_string":"rsyslog start/running, process ",
+    "dead_status_string":"rsyslog stop/waiting",
     "domains_list_tag": "{{DomainsConditionListTAG}}",
     "header_comment_tag": "{{HeaderCommentTAG}}"
   },
