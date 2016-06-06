@@ -43,6 +43,7 @@
   "logs_shipping_span_sec": 60,
   "logs_shipping_reserve_sec": 300,
   "logs_shipping_standoff_sec": 30,
+  "logs_shipping_max_records": 5000,
   "uploads_dir": "uploads",
   "ftp_failed_delay": 5000,
   "failed_retry_num": 2,
