@@ -16,6 +16,7 @@
     }
   },
   "run_logshipping_jobs": true,
+  "run_logcleaning_jobs": true,
   "version_file": "./config/version.txt",
   "rsyslog": {
     "config_src": "scripts/syslog-logshipper.conf",
@@ -42,6 +43,8 @@
   },
   "logs_shipping_span_sec": 60,
   "logs_shipping_max_records": 5000,
+  "logs_clearing_span_sec": 3600,
+  "logs_max_age_hr": 120,
   "uploads_dir": "uploads",
   "ftp_failed_delay": 5000,
   "failed_retry_num": 2,
