@@ -125,9 +125,9 @@ if ( cluster.isMaster ) {
 
     logger.info( 'logs shipping worker started, process id ' + process.pid );
 
-    dispatcher.runSipping();
+    dispatcher.runShipping();
     setInterval( function() {
-      dispatcher.runSipping();
+      dispatcher.runShipping();
     }, ( config.logs_shipping_span_sec * 1000 ) );
 
   } else if ( process.env.worker_name === 'cleaning' ) {

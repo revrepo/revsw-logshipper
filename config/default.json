@@ -43,7 +43,7 @@
   },
   "logs_shipping_span_sec": 60,
   "logs_shipping_max_records": 5000,
-  "logs_clearing_span_sec": 3600,
+  "logs_clearing_span_sec": 120,
   "logs_max_age_hr": 120,
   "uploads_dir": "uploads",
   "ftp_failed_delay": 5000,
