@@ -33,7 +33,8 @@
   "logshipper_db": {
     "connection": "mongodb://TESTSJC20-LS01.REVSW.NET:27017/logshipper",
     "domain_log_collection": "DomainsLog",
-    "app_log_collection": "AppsLog"
+    "app_log_collection": "AppsLog",
+    "running_jobs_collection": "Jobs"
   },
   "revportal_db": {
     "connection": "mongodb://TESTSJC20-CMDB01.REVSW.NET:27017/revportal?replicaSet=CMDB-rs0",
@@ -42,8 +43,9 @@
     "domain_collection": "DomainConfig"
   },
   "logs_shipping_span_sec": 60,
+  "logs_shipping_leeway_sec": 30,
   "logs_shipping_max_records": 5000,
-  "logs_clearing_span_sec": 120,
+  "logs_cleaning_span_sec": 120,
   "logs_max_age_hr": 120,
   "uploads_dir": "uploads",
   "ftp_failed_delay": 5000,

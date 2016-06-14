@@ -119,15 +119,17 @@ if ( cluster.isMaster ) {
   //  ---------------------------------
   //  worker processes setup
 
-  var dispatcher = require( '../lib/dispatcher' );
+  // var dispatcher = require( '../lib/dispatcher' );
+  var Queue = require( '../lib/queue' );
+  var Qu = new Queue();
 
   if ( process.env.worker_name === 'shipping' ) {
 
     logger.info( 'logs shipping worker started, process id ' + process.pid );
 
-    dispatcher.runShipping();
+    Qu.run( true/*fresh start*/ );
     setInterval( function() {
-      dispatcher.runShipping();
+      Qu.run();
     }, ( config.logs_shipping_span_sec * 1000 ) );
 
   } else if ( process.env.worker_name === 'cleaning' ) {
@@ -137,8 +139,8 @@ if ( cluster.isMaster ) {
     setTimeout(function() {
 
       setInterval( function() {
-        dispatcher.runCleaning();
-      }, ( config.logs_clearing_span_sec * 1000 ) );
+        Qu.clean();
+      }, ( config.logs_cleaning_span_sec * 1000 ) );
 
     }, config.logs_shipping_span_sec * 500/*shift on half of logshipping interval*/ );
 
