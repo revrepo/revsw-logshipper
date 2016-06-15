@@ -46,24 +46,24 @@ if ( cluster.isMaster ) {
     var mkdirp = require( 'mkdirp' );
     mkdirp.sync( stuff.toUploadsPath( '' ) );
 
-    var logshipping_worker = cluster.fork( { worker_name: 'shipping' } );
+    var logShippingWorker = cluster.fork( { worker_name: 'shipping' } );
   } else {
     logger.info( 'Log Shipping Service is disabled per configuration' );
   }
 
   if ( config.run_logcleaning_jobs === true ) {
-    var logscleaning_worker = cluster.fork( { worker_name: 'cleaning' } );
+    var logsCleaningWorker = cluster.fork( { worker_name: 'cleaning' } );
   } else {
     logger.info( 'Log Cleaning Service is disabled per configuration' );
   }
 
   cluster.on( 'exit', function( worker, code, signal ) {
-    if ( worker === logshipping_worker ) {
+    if ( worker === logShippingWorker ) {
       logger.warn( 'logshipping worker(' + worker.process.pid + ') died, respawning' );
-      logshipping_worker = cluster.fork( { worker_name: 'shipping' } );
-    } else if ( worker === logscleaning_worker ) {
+      logShippingWorker = cluster.fork( { worker_name: 'shipping' } );
+    } else if ( worker === logsCleaningWorker ) {
       logger.warn( 'logscleaning worker(' + worker.process.pid + ') died, respawning' );
-      logscleaning_worker = cluster.fork( { worker_name: 'cleaning' } );
+      logsCleaningWorker = cluster.fork( { worker_name: 'cleaning' } );
     }
   } );
 
@@ -121,15 +121,15 @@ if ( cluster.isMaster ) {
 
   // var dispatcher = require( '../lib/dispatcher' );
   var Queue = require( '../lib/queue' );
-  var Qu = new Queue();
+  var theQueue = new Queue();
 
   if ( process.env.worker_name === 'shipping' ) {
 
     logger.info( 'logs shipping worker started, process id ' + process.pid );
 
-    Qu.run( true/*fresh start*/ );
+    theQueue.run( true/*fresh start*/ );
     setInterval( function() {
-      Qu.run();
+      theQueue.run();
     }, ( config.logs_shipping_span_sec * 1000 ) );
 
   } else if ( process.env.worker_name === 'cleaning' ) {
@@ -139,11 +139,10 @@ if ( cluster.isMaster ) {
     setTimeout(function() {
 
       setInterval( function() {
-        Qu.clean();
+        theQueue.clean();
       }, ( config.logs_cleaning_span_sec * 1000 ) );
 
     }, config.logs_shipping_span_sec * 500/*shift on half of logshipping interval*/ );
-
 
   }
 
