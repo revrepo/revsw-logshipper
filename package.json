@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "adm-zip": "^0.4.7",
+    "aws-sdk": "^2.4.0",
     "bluebird": "^3.0.5",
     "boom": "2.7.x",
     "config": "^1.16.0",
@@ -31,6 +32,7 @@
     "joi": "^6.1.2",
     "joi-objectid": "~1.1.0",
     "lodash": "^3.10.1",
+    "lumberjack-protocol": "^1.0.3",
     "minimum-tls-version": "0.0.3",
     "mkdirp": "^0.5.1",
     "moment": "^2.12.0",
