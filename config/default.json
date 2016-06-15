@@ -16,20 +16,25 @@
     }
   },
   "run_logshipping_jobs": true,
+  "run_logcleaning_jobs": true,
   "version_file": "./config/version.txt",
   "rsyslog": {
     "config_src": "scripts/syslog-logshipper.conf",
     "config_dest": "/etc/rsyslog-logshipper.d/logshipper.conf",
     "HUP_pause": 5000,
-    "pid_file": "/var/run/rsyslog.pid",
+    "pid_file": "/var/run/rsyslogd.pid",
+    "status_command": "service rsyslog status",
     "restart_command": "service rsyslog restart",
+    "running_status_string":"rsyslog start/running, process ",
+    "dead_status_string":"rsyslog stop/waiting",
     "domains_list_tag": "{{DomainsConditionListTAG}}",
     "header_comment_tag": "{{HeaderCommentTAG}}"
   },
   "logshipper_db": {
     "connection": "mongodb://TESTSJC20-LS01.REVSW.NET:27017/logshipper",
     "domain_log_collection": "DomainsLog",
-    "app_log_collection": "AppsLog"
+    "app_log_collection": "AppsLog",
+    "running_jobs_collection": "Jobs"
   },
   "revportal_db": {
     "connection": "mongodb://TESTSJC20-CMDB01.REVSW.NET:27017/revportal?replicaSet=CMDB-rs0",
@@ -38,8 +43,10 @@
     "domain_collection": "DomainConfig"
   },
   "logs_shipping_span_sec": 60,
-  "logs_shipping_reserve_sec": 300,
-  "logs_shipping_standoff_sec": 30,
+  "logs_shipping_leeway_sec": 30,
+  "logs_shipping_max_records": 5000,
+  "logs_cleaning_span_sec": 120,
+  "logs_max_age_hr": 120,
   "uploads_dir": "uploads",
   "ftp_failed_delay": 5000,
   "failed_retry_num": 2,
