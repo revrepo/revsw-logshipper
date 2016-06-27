@@ -1,4 +1,7 @@
 {
+  "run_logshipping_jobs": true,
+  "run_logcleaning_jobs": true,
+
   "log": {
     "transports": {
       "Console": {
@@ -15,8 +18,14 @@
       }
     }
   },
-  "run_logshipping_jobs": true,
-  "run_logcleaning_jobs": true,
+  "portal_mongo": {
+    "connect_string": "mongodb://TESTSJC20-CMDB01.REVSW.NET:27017/revportal?replicaSet=CMDB-rs0"
+  },
+  "logshipper_mongo": {
+    "connect_string": "mongodb://TESTSJC20-LS01.REVSW.NET:27017/logshipper"
+  },
+  "mongoose_debug_logging": false,
+
   "version_file": "./config/version.txt",
   "rsyslog": {
     "config_src": "scripts/syslog-logshipper.conf",
@@ -29,18 +38,6 @@
     "dead_status_string":"rsyslog stop/waiting",
     "domains_list_tag": "{{DomainsConditionListTAG}}",
     "header_comment_tag": "{{HeaderCommentTAG}}"
-  },
-  "logshipper_db": {
-    "connection": "mongodb://TESTSJC20-LS01.REVSW.NET:27017/logshipper",
-    "domain_log_collection": "DomainsLog",
-    "app_log_collection": "AppsLog",
-    "running_jobs_collection": "Jobs"
-  },
-  "revportal_db": {
-    "connection": "mongodb://TESTSJC20-CMDB01.REVSW.NET:27017/revportal?replicaSet=CMDB-rs0",
-    "job_collection": "LogShippingJob",
-    "app_collection": "App",
-    "domain_collection": "DomainConfig"
   },
   "logs_shipping_span_sec": 60,
   "logs_shipping_leeway_sec": 30,

@@ -23,25 +23,43 @@
 var Joi = require('joi');
 var App = require('../handlers/app.js');
 
-module.exports = [{
-    method: 'GET',
-    path: '/',
-    config: {
-      handler: function( req, reply ) {
-        reply();
-      },
+module.exports = [
+    {
+        method: 'GET',
+        path: '/',
+        config: {
+        handler: function( req, reply ) {
+                reply();
+            },
+        }
+    },
+
+    {
+        method: 'GET',
+        path: '/v1/healthcheck',
+        config: {
+        handler: App.healthCheck,
+        description: 'Service base health check',
+        tags: ['api'],
+        validate: {
+                params: {},
+                query: {}
+            }
+        }
+    },
+
+    {
+        method: 'GET',
+        path: '/v1/queue',
+        config: {
+            handler: App.logshipperJobsQueue,
+            description: 'Get the jobs are processing now in logshipper queue',
+            tags: ['api'],
+            validate: {
+                params: {},
+                query: {}
+            }
+        }
     }
-  }, {
-    method: 'GET',
-    path: '/v1/healthcheck',
-    config: {
-      handler: App.healthcheck,
-      description: 'Service base health check',
-      tags: ['api'],
-      validate: {
-        params: {},
-        query: {}
-      }
-    }
-  }];
+];
 

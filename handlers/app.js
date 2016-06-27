@@ -21,59 +21,49 @@
 
 //  ----------------------------------------------------------------------------------------------//
 
-var boom = require( 'boom' );
+var boom = require('boom');
 var config = require('config');
 var logger = require('revsw-logger')(config.log);
-var promise = require('bluebird');
+var Promise = require('bluebird');
+
+var LogShippingJobs = Promise.promisifyAll(require('../models/portal/LogShippingJob').LogShippingJobs);
+var DomainConfigs = Promise.promisifyAll(require('../models/portal/DomainConfig').DomainConfigs);
+var Apps = Promise.promisifyAll(require('../models/portal/App').Apps);
 
 //  ---------------------------------
-var stuff = require( '../lib/commons' );
-var logshipperDB = require( '../lib/logshipperDB');
-var revportalDB = require( '../lib/revportalDB');
+var commons = require( '../lib/commons' );
 
 //  ----------------------------------------------------------------------------------------------//
 
-exports.healthcheck = function( request, reply ) {
+exports.healthCheck = function( request, reply ) {
+  var version = 1;
 
-  var fs = promise.promisifyAll( require('fs') );
-  var version = 'undefined';
 
-  promise.resolve()
-    .then( function() {
-      return promise.all([
-          revportalDB.health(),
-          logshipperDB.health(),
-          fs.readFileAsync( stuff.toRootPath( config.version_file ), { encoding: 'utf8' })
-        ]);
-    })
-    .then( function( states ) {
-      version = states[2].trim();
-      var msg = [];
-      if ( !states[0].good ) {
-        msg.push( states[0].msg );
-      }
-      if ( !states[1].good ) {
-        msg.push( states[1].msg );
-      }
-      if ( msg.length ) {
-        msg = msg.join('; ');
-        reply( boom.badImplementation( msg, {
-          message: msg,
-          version: version
-        } ) );
-      } else {
-        reply({
+  return LogShippingJobs.listShippingJobsAsync()
+      .then(function(jobs) {
+        return DomainConfigs.listAsync();
+      })
+      .then(function(domainConfigs) {
+        return Apps.listAsync();
+      })
+      .then(function(apps) {
+        return reply({
           message: 'Everything is OK',
           version: version
         });
-      }
-    })
-    .catch( function( err ) {
-      var msg = err.toString();
-      reply( boom.badImplementation( msg, {
-        message: msg,
-        version: version
-      } ) );
-    });
+      })
+      .catch(function(error) {
+        return reply({
+          message: 'Error: ' + error.message,
+          version: version
+        });
+      });
+};
+
+exports.logshipperJobsQueue = function(request, reply) {
+    // TODO: remove or add queue status from worker with cluster messages
+  reply({
+    message: 'OK'
+  });
 };
 
