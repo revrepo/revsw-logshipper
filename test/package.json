@@ -1,0 +1,39 @@
+{
+  "name": "logshipper-testing",
+  "version": "1.0.0",
+  "description": "Testing frmework and suites for REVW Logshipper.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/revrepo/revsw-logshipper.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^2.10.2",
+    "chai": "1.9.x",
+    "config": "^1.16.0",
+    "faker": "~3.1.0",
+    "ftp": "~0.3.10",
+    "ftpd": "~0.2.15",
+    "ftps": "^0.4.7",
+    "grunt": "0.4.x",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-clean": "^0.6.0",
+    "grunt-contrib-jshint": "^0.11.3",
+    "grunt-docker": "0.0.10",
+    "grunt-env": "^0.4.4",
+    "grunt-mocha-test": "^0.12.7",
+    "joi": "^6.1.2",
+    "jshint": "^2.8.0",
+    "jshint-html-reporter": "^0.2.4",
+    "lodash": "^3.10.1",
+    "mocha": "^2.3.3",
+    "mocha.parallel": "^0.11.2",
+    "should": "^7.1.0",
+    "should-http": "0.0.4",
+    "supertest": "^1.1.0"
+  }
+}
