@@ -23,6 +23,7 @@
 
 var boom = require('boom');
 var config = require('config');
+var fs = require('fs');
 var logger = require('revsw-logger')(config.log);
 var Promise = require('bluebird');
 
@@ -36,7 +37,9 @@ var commons = require( '../lib/commons' );
 //  ----------------------------------------------------------------------------------------------//
 
 exports.healthCheck = function( request, reply ) {
-  var version = 1;
+  var version = fs.readFileSync(config.get('version_file'), {
+    encoding: 'utf8'
+  });
 
 
   return LogShippingJobs.listShippingJobsAsync()
@@ -55,7 +58,7 @@ exports.healthCheck = function( request, reply ) {
       .catch(function(error) {
         return reply({
           message: 'Error: ' + error.message,
-          version: version
+          version: version.trim()
         });
       });
 };
