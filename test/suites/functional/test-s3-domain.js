@@ -41,16 +41,7 @@ describe('Functional check', function () {
     var s3Client;
     var jobMinutes = 1;
 
-    var testSourceType = 'domain',
-        testSourceId = '5655668638f201be519f9d87',
-        testDestinationType = 's3',
-        testDestinationHost = config.get('logshipper.s3.test_bucket'),
-        testDestinationPort = '',
-        testDestinationUsername = 'username',
-        testDestinationPassword = config.get('logshipper.s3.test_bucket_secret'),
-        testDestinationKey = config.get('logshipper.s3.test_bucket_key'),
-        testNotificationEmail = '',
-        testComment = 'this is test logshipping job for functional LS test';
+    var testSourceId = '5655668638f201be519f9d87'; // temporary
 
     before(function (done) {
         API.helpers
@@ -66,35 +57,28 @@ describe('Functional check', function () {
             })
             .then(function (domainConfig) {
                 firstDc = domainConfig;
-
-                firstLsJ = LogShippingJobsDP.generateOne(account.id, 'LS-TEST');
+            })
+            .then(function () {
+                return API.helpers.logShippingJobs.createOne(account.id);
+            })
+            .then(function (logShippingJob) {
+                firstLsJ = logShippingJob;
+            })
+            .then(function () {
+                var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
+                    account.id,
+                    's3',
+                    'domain',
+                    testSourceId,
+                    'active'
+                );
                 return API.resources.logShippingJobs
-                    .createOne(firstLsJ)
+                    .update(firstLsJ.id, firstLsJConfig)
                     .expect(200)
-                    .then(function (response) {
-                        firstLsJ.id = response.body.object_id;
-                        var firstLsJUpdateBody = {
-                            account_id: account.id,
-                            job_name: 'updated-' + firstLsJ.job_name,
-                            source_type: testSourceType,
-                            source_id: testSourceId,
-                            destination_type: testDestinationType,
-                            destination_host: testDestinationHost,
-                            destination_port: testDestinationPort,
-                            destination_username: testDestinationUsername,
-                            destination_password: testDestinationPassword,
-                            destination_key: testDestinationKey,
-                            notification_email: testNotificationEmail,
-                            comment: testComment,
-                            operational_mode: 'active'
-                        };
-                        return API.resources.logShippingJobs
-                            .update(firstLsJ.id, firstLsJUpdateBody)
-                            .expect(200)
-                            .then(function() {
-                                done();
-                            })
-                            .catch(done);
+                    .then(function() {
+                        firstLsJConfig.id = firstLsJ.id;
+                        firstLsJ = firstLsJConfig;
+                        done();
                     })
                     .catch(done);
             })
@@ -130,9 +114,9 @@ describe('Functional check', function () {
             setTimeout(function() {
                 s3Client = new S3Client();
                 s3Client.connect(
-                    config.get('logshipper.s3.test_bucket'),
-                    config.get('logshipper.s3.test_bucket_key'),
-                    config.get('logshipper.s3.test_bucket_secret'),
+                    firstLsJ.destination_host,
+                    firstLsJ.destination_key,
+                    firstLsJ.destination_password,
                     function(err) {
                         if (!err) {
                             done();
@@ -144,28 +128,32 @@ describe('Functional check', function () {
         });
 
         it('should remove all objects from s3 bucket', function (done) {
-            s3Client.list(config.get('logshipper.s3.test_bucket'), function (err, files) {
-                if (!err) {
-                    if (files.length) {
-                        s3Client.deleteMany(config.get('logshipper.s3.test_bucket'),
-                            files,
-                            function (err, data) {
-                                if (err) {
-                                    throw err;
-                                }
-                                done();
-                            });
+            s3Client.list(
+                firstLsJ.destination_host,
+                function (err, files) {
+                    if (!err) {
+                        if (files.length) {
+                            s3Client.deleteMany(
+                                firstLsJ.destination_host,
+                                files,
+                                function (err, data) {
+                                    if (err) {
+                                        throw err;
+                                    }
+                                    done();
+                                });
+                        } else {
+                            done();
+                        }
                     } else {
-                        done();
+                        throw err;
                     }
-                } else {
-                    throw err;
-                }
             });
         });
 
         it('should get objects list from s3 bucket', function (done) {
-            s3Client.list(config.get('logshipper.s3.test_bucket'),
+            s3Client.list(
+                firstLsJ.destination_host,
                 function(err, files) {
                     if (!err) {
                         files.length.should.be.equal(0);
@@ -179,11 +167,14 @@ describe('Functional check', function () {
         it('should complete logshipping job and send logs to s3 bucket in ' + jobMinutes +
             ' minutes', function (done) {
             setTimeout(function() {
-                s3Client.list(config.get('logshipper.s3.test_bucket'), function(err, files) {
+                s3Client.list(
+                    firstLsJ.destination_host,
+                    function(err, files) {
                     if (!err) {
                         files.length.should.be.above(0);
 
-                        s3Client.deleteMany(config.get('logshipper.s3.test_bucket'),
+                        s3Client.deleteMany(
+                            firstLsJ.destination_host,
                             files,
                             function (err, data) {
                                 if (!err) {

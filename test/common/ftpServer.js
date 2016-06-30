@@ -22,8 +22,8 @@ var path = require('path');
 
 var server;
 var options = {
-    host: config.get('logshipper.ftp.host'),
-    port: config.get('logshipper.ftp.port'),
+    host: '127.0.0.1',
+    port: '3021',
     tls: null
 };
 

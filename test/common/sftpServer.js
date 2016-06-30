@@ -24,8 +24,8 @@ var SFTP = require('sftp-ws');
 
 var server;
 var options = {
-    host: config.get('logshipper.sftp.host'),
-    port: config.get('logshipper.sftp.port'),
+    host: '127.0.0.1',
+    port: '3022',
     host_key: config.get('logshipper.sftp.host_key'),
     root: path.join(__dirname, config.get('logshipper.sftp.root')),
     test_username: 'correct_username',

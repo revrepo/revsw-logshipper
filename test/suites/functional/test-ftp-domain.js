@@ -43,16 +43,7 @@ describe('Functional check', function () {
     var ftpServerProcess;
     var jobMinutes = 1;
 
-    var testSourceType = 'domain',
-        testSourceId = '5655668638f201be519f9d87',
-        testDestinationType = 'ftp',
-        testDestinationHost = '127.0.0.1',
-        testDestinationPort = config.get('logshipper.ftp.port'),
-        testDestinationUsername = 'username',
-        testDestinationPassword = 'password',
-        testDestinationKey = '',
-        testNotificationEmail = '',
-        testComment = 'this is test logshipping job for functional LS test';
+    var testSourceId = '5655668638f201be519f9d87'; // temporary
 
     before(function (done) {
         API.helpers
@@ -68,35 +59,28 @@ describe('Functional check', function () {
             })
             .then(function (domainConfig) {
                 firstDc = domainConfig;
-
-                firstLsJ = LogShippingJobsDP.generateOne(account.id, 'LS-TEST');
+            })
+            .then(function () {
+                return API.helpers.logShippingJobs.createOne(account.id);
+            })
+            .then(function (logShippingJob) {
+                firstLsJ = logShippingJob;
+            })
+            .then(function () {
+                var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
+                    account.id,
+                    'ftp',
+                    'domain',
+                    testSourceId,
+                    'active'
+                );
                 return API.resources.logShippingJobs
-                    .createOne(firstLsJ)
+                    .update(firstLsJ.id, firstLsJConfig)
                     .expect(200)
-                    .then(function (response) {
-                        firstLsJ.id = response.body.object_id;
-                        var firstLsJUpdateBody = {
-                            account_id: account.id,
-                            job_name: 'updated-' + firstLsJ.job_name,
-                            source_type: testSourceType,
-                            source_id: testSourceId,
-                            destination_type: testDestinationType,
-                            destination_host: testDestinationHost,
-                            destination_port: testDestinationPort,
-                            destination_username: testDestinationUsername,
-                            destination_password: testDestinationPassword,
-                            destination_key: testDestinationKey,
-                            notification_email: testNotificationEmail,
-                            comment: testComment,
-                            operational_mode: 'active'
-                        };
-                        return API.resources.logShippingJobs
-                            .update(firstLsJ.id, firstLsJUpdateBody)
-                            .expect(200)
-                            .then(function() {
-                                done();
-                            })
-                            .catch(done);
+                    .then(function() {
+                        firstLsJConfig.id = firstLsJ.id;
+                        firstLsJ = firstLsJConfig;
+                        done();
                     })
                     .catch(done);
             })
@@ -142,10 +126,10 @@ describe('Functional check', function () {
             setTimeout(function() {
                 ftpClient = new FtpClient();
                 ftpClient.connect(
-                    config.get('logshipper.ftp.host'),
-                    config.get('logshipper.ftp.port'),
-                    testDestinationUsername,
-                    testDestinationPassword,
+                    firstLsJ.destination_host,
+                    firstLsJ.destination_port,
+                    firstLsJ.username,
+                    firstLsJ.password,
                     function(err) {
                         if (!err) {
                             done();

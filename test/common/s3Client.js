@@ -28,6 +28,7 @@ S3Client.prototype.connect = function(host, username, password, callback) {
 
     if (!self.client) {
         try {
+            console.log('s3 credentials', username, password);
             Client.config.update({
                 accessKeyId: username,
                 secretAccessKey: password

@@ -25,7 +25,7 @@
 // depending on your test needs.
 var LogShippingJobsDataProvider = {
 
-  prefix: 'API-TEST',
+  prefix: 'LS-TEST',
 
   /**
    * ### LogShippingJobsDataProvider.generateOne()
@@ -46,9 +46,121 @@ var LogShippingJobsDataProvider = {
   generateOne: function (accountId, prefix) {
     var _prefix = prefix || this.prefix;
     return {
-      'job_name':(_prefix + '-' + Date.now() + '-LOGSHIPPER-JOB').toLowerCase(),
+      'job_name': (_prefix + '-' + Date.now() + '-LOGSHIPPER-JOB').toLowerCase(),
       'account_id': accountId
     };
+  },
+
+  generateUpdateData: function(accountId, destination, source, sourceId, operationalMode, prefix) {
+    var _prefix = prefix || this.prefix;
+    var destinationHost = '',
+        destinationPort = '',
+        destinationKey = '',
+        username = '',
+        password = '';
+
+    if (operationalMode !== 'active' && operationalMode !== 'stop' && operationalMode !== 'pause') {
+      throw new Error('Invalid operationalMode');
+    }
+
+    if (source === 'domain') {
+      // pass
+    } else {
+      throw new Error('Invalid source');
+    }
+
+    if (destination === 's3') {
+      destinationHost = 'revsw-logshipper-qa-test';
+      destinationKey = 'AKIAIIGELF5U2CXREO5A';
+      password = '3uedu+gf6kYEY/ulj/GxJzXF9/ocnIMreKy+zk/R'; // S3 SecretKey
+    } else if (destination === 'ftp') {
+      destinationHost = '127.0.0.1';
+      destinationPort = '3021';
+      username = 'logshipper';
+      password = 'logshipper';
+    } else if (destination === 'sftp') {
+      destinationHost = '127.0.0.1';
+      destinationPort = '3022';
+      username = 'logshipper';
+      password = 'logshipper';
+    } else if (destination === 'elasticsearch') {
+      destinationHost = 'testsjc20-es01.revsw.net';
+      destinationPort = '9200';
+      destinationKey = 'logs';
+    } else {
+      throw new Error('Invalid destination');
+    }
+
+    return {
+      job_name: (_prefix + '-' + Date.now() + 'UPDATED-LOGSHIPPER-JOB').toLowerCase(),
+      account_id: accountId,
+      source_type: source,
+      source_id: sourceId,
+      destination_type: destination,
+      destination_host: destinationHost,
+      destination_port: destinationPort,
+      destination_username: username,
+      destination_password: password,
+      destination_key: destinationKey,
+      notification_email: '',
+      comment: 'test commment for logshipping job',
+      operational_mode: operationalMode
+    }
+  },
+
+  generateInvalidUpdateData: function(accountId, destination, source, sourceId, operationalMode, prefix) {
+    var _prefix = prefix || this.prefix;
+    var destinationHost = '',
+        destinationPort = '',
+        destinationKey = '',
+        username = '',
+        password = '';
+
+    if (operationalMode !== 'active' && operationalMode !== 'stop' && operationalMode !== 'pause') {
+      throw new Error('Invalid operationalMode');
+    }
+
+    if (source === 'domain') {
+      // pass
+    } else {
+      throw new Error('Invalid source');
+    }
+
+    if (destination === 's3') {
+      destinationHost = 'HJjsfhJSInvaLid73BuckDJS22';
+      destinationKey = 'AKIAIIGELF5U2CXR5EO5A';
+      password = '3uedu+gf6kYEY/ulj/Gx3JzXF9/ocnIMreKy+zk/R'; // S3 SecretKey
+    } else if (destination === 'ftp') {
+      destinationHost = '128.0.0.1';
+      destinationPort = '3221';
+    } else if (destination === 'sftp') {
+      destinationHost = '128.0.0.1';
+      destinationPort = '3222';
+      username = 'logshipper2';
+      password = 'logshipper1';
+    } else if (destination === 'elasticsearch') {
+      destinationHost = 'testsjc99-es01.revsw.net';
+      destinationPort = '9201';
+      destinationKey = 'logs';
+    } else {
+      throw new Error('Invalid destination');
+    }
+
+    return {
+      job_name: (_prefix + '-' + Date.now() + 'UPDATED-LOGSHIPPER-JOB').toLowerCase(),
+      account_id: accountId,
+      source_type: source,
+      source_id: sourceId,
+      destination_type: destination,
+      destination_host: destinationHost,
+      destination_port: destinationPort,
+      destination_username: username,
+      destination_password: password,
+      destination_key: destinationKey,
+      notification_email: '',
+      comment: 'test commment for logshipping job',
+      operational_mode: operationalMode
+    }
   }
 };
 

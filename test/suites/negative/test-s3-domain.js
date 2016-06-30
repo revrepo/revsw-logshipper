@@ -40,16 +40,7 @@ describe('Negative check', function () {
     var ftpClient;
     var jobMinutes = 3;
 
-    var testSourceType = 'domain',
-        testSourceId = '5655668638f201be519f9d87',
-        testDestinationType = 's3',
-        testDestinationHost = config.get('logshipper.s3.invalid_test_bucket'),
-        testDestinationPort = '',
-        testDestinationUsername = 'username',
-        testDestinationPassword = config.get('logshipper.s3.test_bucket_secret'),
-        testDestinationKey = config.get('logshipper.s3.test_bucket_key'),
-        testNotificationEmail = '',
-        testComment = 'this is test logshipping job for functional LS test';
+    var testSourceId = '5655668638f201be519f9d87'; // temporary
 
     before(function (done) {
         API.helpers
@@ -65,35 +56,28 @@ describe('Negative check', function () {
             })
             .then(function (domainConfig) {
                 firstDc = domainConfig;
-
-                firstLsJ = LogShippingJobsDP.generateOne(account.id, 'LS-TEST');
+            })
+            .then(function () {
+                return API.helpers.logShippingJobs.createOne(account.id);
+            })
+            .then(function (logShippingJob) {
+                firstLsJ = logShippingJob;
+            })
+            .then(function () {
+                var firstLsJConfig = LogShippingJobsDP.generateInvalidUpdateData(
+                    account.id,
+                    's3',
+                    'domain',
+                    testSourceId,
+                    'active'
+                );
                 return API.resources.logShippingJobs
-                    .createOne(firstLsJ)
+                    .update(firstLsJ.id, firstLsJConfig)
                     .expect(200)
-                    .then(function (response) {
-                        firstLsJ.id = response.body.object_id;
-                        var firstLsJUpdateBody = {
-                            account_id: account.id,
-                            job_name: 'updated-' + firstLsJ.job_name,
-                            source_type: testSourceType,
-                            source_id: testSourceId,
-                            destination_type: testDestinationType,
-                            destination_host: testDestinationHost,
-                            destination_port: testDestinationPort,
-                            destination_username: testDestinationUsername,
-                            destination_password: testDestinationPassword,
-                            destination_key: testDestinationKey,
-                            notification_email: testNotificationEmail,
-                            comment: testComment,
-                            operational_mode: 'active'
-                        };
-                        return API.resources.logShippingJobs
-                            .update(firstLsJ.id, firstLsJUpdateBody)
-                            .expect(200)
-                            .then(function() {
-                                done();
-                            })
-                            .catch(done);
+                    .then(function() {
+                        firstLsJConfig.id = firstLsJ.id;
+                        firstLsJ = firstLsJConfig;
+                        done();
                     })
                     .catch(done);
             })
