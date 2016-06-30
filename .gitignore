@@ -15,7 +15,6 @@ sftp-config.json
 config/local.json
 config/local-*.json
 sandbox/*
-test/config/*
 uploads/*
 package_build_dir/
 packages

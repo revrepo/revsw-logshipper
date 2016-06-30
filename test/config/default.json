@@ -1,0 +1,137 @@
+{
+  "logshipper": {
+    "ftp": {
+      "root": "uploads",
+      "download": "downloads",
+      "script": "ftpServer.js",
+      "test_file": "test-file"
+    },
+    "sftp": {
+      "root": "uploads",
+      "download": "downloads",
+      "script": "sftpServer.js",
+      "host_key": "ssh_host_rsa_key",
+      "test_file": "test-file"
+    }
+  },
+  "log_config": {
+    "transports": {
+      "Console": {
+        "level": "info",
+        "colorize": true,
+        "prettyPrint": true,
+        "humanReadableUnhandledException": true,
+        "showLevel": true
+      }
+    }
+  },
+  "api": {
+    "host": {
+      "protocol": "https",
+      "name": "0.0.0.0",
+      "port": 8000
+    },
+    "zenDesk": {
+      "url": "https://revapm.zendesk.com"
+    },
+    "version": "v1",
+    "resources": {
+      "billingPlans": "billing_plans",
+      "authenticate": "authenticate",
+      "users": "users",
+      "stats": "stats",
+      "sdkConfigs": "sdk/config",
+      "activity": "activity"
+    },
+    "request": {
+      "maxTimeout": 300000
+    },
+    "users": {
+      "revAdmin": {
+        "email": "qa_user_with_rev-admin_perm@revsw.com",
+        "password": "password1",
+        "role": "Rev Admin"
+      },
+      "reseller": {
+        "email": "api_qa_user_with_reseller_perm@revsw.com",
+        "password": "password1",
+        "role": "Reseller"
+      },
+      "secondReseller": {
+        "email": "api_qa_user_2_with_reseller_perm@revsw.com",
+        "password": "password1",
+        "role": "Reseller"
+      },
+      "admin": {
+        "email": "api_qa_user_with_admin_perm@revsw.com",
+        "password": "password1",
+        "role": "Admin"
+      },
+      "user": {
+        "email": "qa_user_with_user_perm@revsw.com",
+        "password": "password1",
+        "role": "Normal User"
+      },
+      "admin2": {
+        "email": "qa_user_with_admin_perm@revsw.com",
+        "password": "password1",
+        "role": "Admin"
+      },
+      "reseller2": {
+        "email": "qa_user_with_reseller_perm@revsw.com",
+        "password": "password1",
+        "role": "Reseller"
+      },
+      "nobody": {
+        "email": "wrong_username@revsw.com",
+        "password": "we5rsdfsdfs",
+        "role": "None"
+      },
+      "gMail": {
+        "email": "revswqa@gmail.com",
+        "password": "revswqa1"
+      }
+    },
+    "mobileApps": {
+      "platforms": {
+        "ios": "iOS",
+        "android": "Android"
+      }
+    },
+    "stats": {
+      "elastic": "testsjc20-es01.revsw.net:9200",
+      "elastic_url": "testsjc20-esurl01.revsw.net:9200",
+      "client_timeout": 1200000,
+      "upload_portion_size": 10000,
+      "upload_concurrency": 3,
+      "type": "apache_json_testing",
+      "domains": {
+        "test": {
+          "id": "5655668638f201be519f9d87",
+          "name": "portal-qa-domain.revsw.net"
+        },
+        "google": {
+          "id": "56558390b6eb546a6732ab4f",
+          "name": "www.google-test.com"
+        }
+      }
+    },
+    "usage_report": {
+      "account_id": "55b6ff6a7957012304a49d04",
+      "domain_id": "56558390b6eb546a6732ab4f",
+      "domain_name": "www.google-test.com"
+    }
+  },
+  "stats_api": {
+    "server": "https://testsjc20-statsapi01.revsw.net:443",
+    "version": "v1",
+    "index_prefix": "sdkstats-",
+    "key_server_poll_interval": 12000,
+    "queue_clear_timeout": 10000
+  },
+  "mailinator": {
+    "api": {
+      "token": "998031df8b2e4558a4b7e8f33a6566c0"
+    }
+  }
+}
