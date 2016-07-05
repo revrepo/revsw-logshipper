@@ -16,6 +16,8 @@
  * from Rev Software, Inc.
  */
 
+var config = require('config');
+
 // # Domain Configs Data Provider object
 //
 // Defines some methods to generate valid and common domain-configs test data.
@@ -74,12 +76,12 @@ var LogShippingJobsDataProvider = {
       destinationKey = 'AKIAIIGELF5U2CXREO5A';
       password = '3uedu+gf6kYEY/ulj/GxJzXF9/ocnIMreKy+zk/R'; // S3 SecretKey
     } else if (destination === 'ftp') {
-      destinationHost = 'testsjc20-jenkins01.revsw.net';
+      destinationHost = process.env.NODE_ENV === 'qa' ? config.get('logshipper.ftp.host') : '127.0.0.1';
       destinationPort = '3021';
       username = 'logshipper';
       password = 'logshipper';
     } else if (destination === 'sftp') {
-      destinationHost = 'testsjc20-jenkins01.revsw.net';
+      destinationHost = process.env.NODE_ENV === 'qa' ? config.get('logshipper.sftp.host') : '127.0.0.1';
       destinationPort = '3022';
       username = 'logshipper';
       password = 'logshipper';
