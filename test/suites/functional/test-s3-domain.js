@@ -172,7 +172,37 @@ describe('Functional check', function () {
                     function(err, files) {
                     if (!err) {
                         files.length.should.be.above(0);
+                        done();
+                    } else {
+                        throw err;
+                    }
+                });
+            }, jobMinutes * 60 * 1000);
+        });
 
+        it('should stop logshipping job for s3 bucket', function (done) {
+            var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
+                account.id,
+                's3',
+                'domain',
+                testSourceId,
+                'stop'
+            );
+            API.resources.logShippingJobs
+                .update(firstLsJ.id, firstLsJConfig)
+                .expect(200)
+                .then(function() {
+                    firstLsJConfig.id = firstLsJ.id;
+                    firstLsJ = firstLsJConfig;
+                    done();
+                });
+        });
+
+        it('should remove all objects from s3 bucket', function (done) {
+            s3Client.list(
+                firstLsJ.destination_host,
+                function(err, files) {
+                    if (!err) {
                         s3Client.deleteMany(
                             firstLsJ.destination_host,
                             files,
@@ -182,12 +212,11 @@ describe('Functional check', function () {
                                 } else {
                                     throw err;
                                 }
-                        });
+                            });
                     } else {
                         throw err;
                     }
                 });
-            }, jobMinutes * 60 * 1000);
         });
     });
 });

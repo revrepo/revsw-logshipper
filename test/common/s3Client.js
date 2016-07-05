@@ -55,9 +55,7 @@ S3Client.prototype.list = function(bucket, callback) {
             if (err) {
                 callback(err, null);
             } else {
-                callback(null, data.Contents.map(function(content) {
-                    return content.Key;
-                }));
+                callback(null, data.Contents);
             }
         });
     } else {
@@ -82,19 +80,22 @@ S3Client.prototype.download = function(filename, bucket, dest, callback) {
     // }
 };
 
-S3Client.prototype.deleteMany = function(bucket, keys, callback) {
+S3Client.prototype.deleteMany = function(bucket, files, callback) {
     var self = this;
 
     if (self.client) {
         var params = {
             Bucket: bucket,
             Delete: {
-                Objects: keys.map(function(key) {
-                             return {Key: key};
+                Objects: files.map(function(file) {
+                             //return {Key: 'https://s3.amazonaws.com/' + bucket + '/' + key};
+                             return {
+                                 Key: file.Key
+                             };
                          }),
                 Quiet: false
             },
-            RequestPayer: 'requester'
+            RequestPayer: 'logshipper'
         };
         self.client.deleteObjects(params, function(err, data) {
             if (err) {

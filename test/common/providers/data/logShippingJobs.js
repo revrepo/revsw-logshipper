@@ -74,12 +74,12 @@ var LogShippingJobsDataProvider = {
       destinationKey = 'AKIAIIGELF5U2CXREO5A';
       password = '3uedu+gf6kYEY/ulj/GxJzXF9/ocnIMreKy+zk/R'; // S3 SecretKey
     } else if (destination === 'ftp') {
-      destinationHost = '127.0.0.1';
+      destinationHost = 'testsjc20-jenkins01.revsw.net';
       destinationPort = '3021';
       username = 'logshipper';
       password = 'logshipper';
     } else if (destination === 'sftp') {
-      destinationHost = '127.0.0.1';
+      destinationHost = 'testsjc20-jenkins01.revsw.net';
       destinationPort = '3022';
       username = 'logshipper';
       password = 'logshipper';
