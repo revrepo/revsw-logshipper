@@ -1,4 +1,12 @@
 {
+  "logshipper": {
+    "ftp": {
+      "host": "testsjc20-jenkins01.revsw.net"
+    },
+    "sftp": {
+      "host": "testsjc20-jenkins01.revsw.net"
+    }
+  },
   "api": {
     "host": {
       "protocol": "https",

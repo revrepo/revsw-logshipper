@@ -199,24 +199,26 @@ describe('Functional check', function () {
         });
 
         it('should remove all objects from s3 bucket', function (done) {
-            s3Client.list(
-                firstLsJ.destination_host,
-                function(err, files) {
-                    if (!err) {
-                        s3Client.deleteMany(
-                            firstLsJ.destination_host,
-                            files,
-                            function (err, data) {
-                                if (!err) {
-                                    done();
-                                } else {
-                                    throw err;
-                                }
-                            });
-                    } else {
-                        throw err;
-                    }
-                });
+            setTimeout(function() {
+                s3Client.list(
+                    firstLsJ.destination_host,
+                    function (err, files) {
+                        if (!err) {
+                            s3Client.deleteMany(
+                                firstLsJ.destination_host,
+                                files,
+                                function (err, data) {
+                                    if (!err) {
+                                        done();
+                                    } else {
+                                        throw err;
+                                    }
+                                });
+                        } else {
+                            throw err;
+                        }
+                    });
+            }, 30000);
         });
     });
 });

@@ -1,12 +1,14 @@
 {
   "logshipper": {
     "ftp": {
+      "host": "127.0.0.1",
       "root": "uploads",
       "download": "downloads",
       "script": "ftpServer.js",
       "test_file": "test-file"
     },
     "sftp": {
+      "host": "127.0.0.1",
       "root": "uploads",
       "download": "downloads",
       "script": "sftpServer.js",
