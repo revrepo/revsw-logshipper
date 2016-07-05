@@ -76,12 +76,12 @@ var LogShippingJobsDataProvider = {
       destinationKey = 'AKIAIIGELF5U2CXREO5A';
       password = '3uedu+gf6kYEY/ulj/GxJzXF9/ocnIMreKy+zk/R'; // S3 SecretKey
     } else if (destination === 'ftp') {
-      destinationHost = process.env.NODE_ENV === 'qa' ? config.get('logshipper.ftp.host') : '127.0.0.1';
+      destinationHost = config.get('logshipper.ftp.host');
       destinationPort = '3021';
       username = 'logshipper';
       password = 'logshipper';
     } else if (destination === 'sftp') {
-      destinationHost = process.env.NODE_ENV === 'qa' ? config.get('logshipper.sftp.host') : '127.0.0.1';
+      destinationHost = config.get('logshipper.sftp.host');
       destinationPort = '3022';
       username = 'logshipper';
       password = 'logshipper';
