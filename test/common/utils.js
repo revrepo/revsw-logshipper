@@ -24,6 +24,7 @@ var os = require('os');
 module.exports = {
     getLocalIP: function() {
         var ifaces = os.networkInterfaces();
+        var localIP = null;
         Object.keys(ifaces).forEach(function (ifname) {
             var alias = 0;
 
@@ -38,12 +39,12 @@ module.exports = {
                 //     console.log(ifname, iface.address);
                 // }
                 if (iface.address.indexOf('192.168') !== -1) {
-                    return iface.address;
+                    localIP = iface.address;
                 }
                 ++alias;
             });
         });
-        
-        return '127.0.0.1';
+
+        return localIP ? localIP : '127.0.0.1';
     }
 };
