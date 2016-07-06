@@ -16,16 +16,19 @@
  * from Rev Software, Inc.
  */
 
+var utils = require('./utils');
 var ftpd = require('ftpd');
 var config = require('config');
 var path = require('path');
 
 var server;
 var options = {
-    host: '127.0.0.1',
+    host: utils.getLocalIP(),
     port: '3021',
     tls: null
 };
+
+console.log(options);
 
 server = new ftpd.FtpServer(options.host, {
     getInitialCwd: function() {

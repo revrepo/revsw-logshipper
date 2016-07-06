@@ -192,8 +192,6 @@ describe('Functional check', function () {
                 .update(firstLsJ.id, firstLsJConfig)
                 .expect(200)
                 .then(function() {
-                    firstLsJConfig.id = firstLsJ.id;
-                    firstLsJ = firstLsJConfig;
                     done();
                 });
         });
