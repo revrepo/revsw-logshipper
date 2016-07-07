@@ -33,11 +33,6 @@ module.exports = {
                     return;
                 }
 
-                // if (alias >= 1) {
-                //     console.log(ifname + ':' + alias, iface.address);
-                // } else {
-                //     console.log(ifname, iface.address);
-                // }
                 if (iface.address.indexOf('192.168') !== -1) {
                     localIP = iface.address;
                 }
