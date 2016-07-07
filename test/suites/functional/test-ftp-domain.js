@@ -126,7 +126,7 @@ describe('Functional check', function () {
             setTimeout(function() {
                 ftpClient = new FtpClient();
                 ftpClient.connect(
-                    firstLsJ.destination_host,
+                    'localhost',
                     firstLsJ.destination_port,
                     firstLsJ.username,
                     firstLsJ.password,
