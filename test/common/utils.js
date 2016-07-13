@@ -19,7 +19,10 @@
 
 'use strict';
 
+var config = require('config');
 var os = require('os');
+var Promise = require('bluebird');
+var agent = require('supertest-as-promised');
 
 module.exports = {
     getLocalIP: function() {
@@ -41,5 +44,42 @@ module.exports = {
         });
 
         return localIP ? localIP : '127.0.0.1';
+    },
+
+    getProxyServers: function() {
+        var cdsUrl = config.get('cds.protocol') + '://' + config.get('cds.name') + ':' + config.get('cds.port');
+        return agent(cdsUrl)
+            .get('/v1/proxy_servers')
+            .set('Authorization', 'Bearer ' + config.get('cds.token'))
+            .then(function (res) {
+                return res.body;
+            })
+            .catch(function(error) {
+                throw error;
+            });
+    },
+    
+    sendProxyServerRequest: function(serverHost, domainName) {
+        return agent('http://' + serverHost)
+            .get('/')
+            .set('Host', domainName)
+            .expect(200)
+            .then(function (res) {
+                return agent('http://' + serverHost + ':18000')
+                    .get('/')
+                    .set('Host', domainName)
+                    .expect(200)
+                    .then(function (res) {
+                        return Promise.resolve(true);
+                    })
+                    .catch(function(error) {
+                        console.log('Proxy ' + serverHost + ' error (' + domainName + '): ', error);
+                        return Promise.reject(error);
+                    });                
+            })
+            .catch(function(error) {
+                console.log('Proxy ' + serverHost + ' error (' + domainName + '): ', error);
+                return Promise.reject(error);
+            });
     }
 };

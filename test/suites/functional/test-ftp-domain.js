@@ -25,6 +25,7 @@ var path = require('path');
 var config = require('config');
 var API = require('./../../common/api');
 var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs');
+var utils = require('./../../common/utils');
 
 var FtpClient = require('./../../common/ftpClient');
 
@@ -41,13 +42,18 @@ describe('Functional check', function () {
     var firstDc;
     var ftpClient;
     var ftpServerProcess;
+    var proxyServers;
     var jobMinutes = 1;
-
-    var testSourceId = '5655668638f201be519f9d87'; // temporary
 
     before(function (done) {
         API.helpers
             .authenticateUser(revAdmin)
+            .then(function() {
+                return utils.getProxyServers();
+            })
+            .then(function(servers) {
+                proxyServers = servers;
+            })
             .then(function () {
                 return API.helpers.accounts.createOne();
             })
@@ -55,7 +61,7 @@ describe('Functional check', function () {
                 account = newAccount;
             })
             .then(function() {
-                return API.helpers.domainConfigs.createOne(account.id, 'LS-TEST');
+                return API.helpers.domainConfigs.createOne(account.id);
             })
             .then(function (domainConfig) {
                 firstDc = domainConfig;
@@ -71,7 +77,7 @@ describe('Functional check', function () {
                     account.id,
                     'ftp',
                     'domain',
-                    testSourceId,
+                    firstDc.id,
                     'active'
                 );
                 return API.resources.logShippingJobs
@@ -186,6 +192,44 @@ describe('Functional check', function () {
                     });
         });
 
+        it('should send requests to recently created domain config to generate logs in 2 minutes', function (done) {
+            setTimeout(function() {
+                var productionProxyServers = proxyServers
+                    .filter(function(server) {
+                        return server.environment === 'prod' && server.status === 'online';
+                    })
+                    .map(function(server) {
+                        return server.server_name.toLowerCase();
+                    });
+
+                var stagingProxyServers = proxyServers
+                    .filter(function(server) {
+                        return server.environment === 'staging' && server.status === 'online';
+                    })
+                    .map(function(server) {
+                        return server.server_name.toLowerCase();
+                    });
+                var proxyRequests = [];
+                productionProxyServers.forEach(function(server) {
+                    proxyRequests.push(
+                        utils.sendProxyServerRequest(server, firstDc.domain_name)
+                    );
+                });
+                stagingProxyServers.forEach(function(server) {
+                    proxyRequests.push(
+                        utils.sendProxyServerRequest(server, firstDc.domain_name)
+                    );
+                });
+                return Promise.all(proxyRequests)
+                    .then(function() {
+                        done();
+                    })
+                    .catch(function(error) {
+                        return Promise.reject(error);
+                    });
+            }, 120 * 1000);
+        });
+
         it('should complete logshipping job and send logs to local ftp server in ' + jobMinutes +
             ' minutes', function (done) {
             setTimeout(function() {
@@ -221,6 +265,25 @@ describe('Functional check', function () {
                         });
                 });
             }, jobMinutes * 60 * 1000);
+        });
+
+        it('should stop logshipping job for ftp server', function (done) {
+            var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
+                account.id,
+                'ftp',
+                'domain',
+                firstDc.id,
+                'stop'
+            );
+            API.resources.logShippingJobs
+                .update(firstLsJ.id, firstLsJConfig)
+                .expect(200)
+                .then(function() {
+                    done();
+                })
+                .catch(function(error) {
+                    throw error;
+                });
         });
 
         it('should stop local ftp server', function (done) {

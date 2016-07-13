@@ -29,39 +29,57 @@ SFtpClient.prototype.connect = function(host, port, username, password, callback
     var self = this;
 
     try {
-        self.client = new Client({
+        var options = {
             host: host,
             username: username,
             password: password,
             port: port,
             protocol: 'sftp',
-            timeout: 5
-        });
+            timeout: 40,
+            retries: 3
+        };
+        self.client = new Client(options);
         callback(null);
     } catch(error) {
         callback(error);
     }
 };
 
-SFtpClient.prototype.list = function(host, port, username, password, filesPath, callback) {
+SFtpClient.prototype.list = function(filesPath, callback) {
     var self = this;
-    self.connect(
-        host,
-        port,
-        username,
-        password,
-        function(err) {
-            if (!err) {
-                self.client
-                    .cd(filesPath)
-                    .ls()
-                    .exec(function (err, res) {
-                        callback(err, res);
-                    });
-            } else {
-                callback(new Error('Connection error'), null);
-            }
-        });
+    if (self.client) {
+        self.client
+            .cd(filesPath)
+            .raw('dir')
+            .exec(function (err, res) {
+                if (!err) {
+                    var files = res.data.split('\n')
+                        .filter(function(file) {
+                            return !!(file.indexOf('.zip') !== -1 || file.indexOf('test-file') !== -1);
+                        })
+                        .map(function(filename) {
+                            var filenameSplit = filename.split(' ');
+                            return filenameSplit[filenameSplit.length - 1];
+                        });
+                }
+                callback(err || res.error, files);
+            });
+    } else {
+        callback(new Error('sftp client is not connected to any server'), null);
+    }
+};
+
+SFtpClient.prototype.delete = function(filename, callback) {
+    var self = this;
+    if (self.client) {
+        self.client
+            .raw('rm ' + filename)
+            .exec(function(err, res) {
+                callback(err || res.error, res);
+            });
+    } else {
+        callback(new Error('sftp client is not connected to any server'), null);
+    }
 };
 
 SFtpClient.prototype.download = function(filename, filePath, dest, callback) {
@@ -70,8 +88,10 @@ SFtpClient.prototype.download = function(filename, filePath, dest, callback) {
         self.client
             .get(path.join(filePath, filename), path.join(dest, filename))
             .exec(function(err, res) {
-                callback(err, res);
+                callback(err || res.error, res);
             });
+    } else {
+        callback(new Error('sftp client is not connected to any server'), null);
     }
 };
 

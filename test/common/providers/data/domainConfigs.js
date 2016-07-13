@@ -50,10 +50,10 @@ var DomainConfigsDataProvider = {
     return {
       'domain_name':(_prefix + '-' + Date.now() + '.revsw.net').toLowerCase(),
       'account_id': accountId,
-      'origin_host_header': _prefix + '-config.revsw.net',
-      'origin_server': _prefix + '-website01.revsw.net',
+      'origin_host_header': 'testsjc20-website01.revsw.net',
+      'origin_server': 'testsjc20-website01.revsw.net',
       'origin_server_location_id': '55a56fa6476c10c329a90741',
-      'tolerance': '4000'
+      'tolerance': '3000'
     };
   },
 

@@ -24,6 +24,7 @@ var path = require('path');
 var config = require('config');
 var API = require('./../../common/api');
 var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs');
+var utils = require('./../../common/utils');
 
 var S3Client = require('./../../common/s3Client');
 
@@ -40,12 +41,17 @@ describe('Functional check', function () {
     var firstDc;
     var s3Client;
     var jobMinutes = 1;
-
-    var testSourceId = '5655668638f201be519f9d87'; // temporary
+    var proxyServers;
 
     before(function (done) {
         API.helpers
             .authenticateUser(revAdmin)
+            .then(function() {
+                return utils.getProxyServers();
+            })
+            .then(function(servers) {
+                proxyServers = servers;
+            })
             .then(function () {
                 return API.helpers.accounts.createOne();
             })
@@ -53,7 +59,7 @@ describe('Functional check', function () {
                 account = newAccount;
             })
             .then(function() {
-                return API.helpers.domainConfigs.createOne(account.id, 'LS-TEST');
+                return API.helpers.domainConfigs.createOne(account.id);
             })
             .then(function (domainConfig) {
                 firstDc = domainConfig;
@@ -69,7 +75,7 @@ describe('Functional check', function () {
                     account.id,
                     's3',
                     'domain',
-                    testSourceId,
+                    firstDc.id,
                     'active'
                 );
                 return API.resources.logShippingJobs
@@ -164,6 +170,44 @@ describe('Functional check', function () {
                 });
         });
 
+        it('should send requests to recently created domain config to generate logs in 2 minutes', function (done) {
+            setTimeout(function() {
+                var productionProxyServers = proxyServers
+                    .filter(function(server) {
+                        return server.environment === 'prod' && server.status === 'online';
+                    })
+                    .map(function(server) {
+                        return server.server_name.toLowerCase();
+                    });
+
+                var stagingProxyServers = proxyServers
+                    .filter(function(server) {
+                        return server.environment === 'staging' && server.status === 'online';
+                    })
+                    .map(function(server) {
+                        return server.server_name.toLowerCase();
+                    });
+                var proxyRequests = [];
+                productionProxyServers.forEach(function(server) {
+                    proxyRequests.push(
+                        utils.sendProxyServerRequest(server, firstDc.domain_name)
+                    );
+                });
+                stagingProxyServers.forEach(function(server) {
+                    proxyRequests.push(
+                        utils.sendProxyServerRequest(server, firstDc.domain_name)
+                    );
+                });
+                return Promise.all(proxyRequests)
+                    .then(function() {
+                        done();
+                    })
+                    .catch(function(error) {
+                        return Promise.reject(error);
+                    });
+            }, 120 * 1000);
+        });
+
         it('should complete logshipping job and send logs to s3 bucket in ' + jobMinutes +
             ' minutes', function (done) {
             setTimeout(function() {
@@ -185,7 +229,7 @@ describe('Functional check', function () {
                 account.id,
                 's3',
                 'domain',
-                testSourceId,
+                firstDc.id,
                 'stop'
             );
             API.resources.logShippingJobs
@@ -193,6 +237,9 @@ describe('Functional check', function () {
                 .expect(200)
                 .then(function() {
                     done();
+                })
+                .catch(function(error) {
+                    throw error;
                 });
         });
 

@@ -81,10 +81,10 @@ var LogShippingJobsDataProvider = {
       username = 'logshipper';
       password = 'logshipper';
     } else if (destination === 'sftp') {
-      destinationHost = config.get('logshipper.sftp.host');
-      destinationPort = '3022';
-      username = 'logshipper';
-      password = 'logshipper';
+      destinationHost = 'yegordia.xyz';
+      destinationPort = '22';
+      username = 'revsw';
+      password = 'password';
     } else if (destination === 'elasticsearch') {
       destinationHost = 'testsjc20-es01.revsw.net';
       destinationPort = '9200';
