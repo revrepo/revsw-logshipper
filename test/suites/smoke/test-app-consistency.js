@@ -24,43 +24,43 @@ var request = require('supertest');
 
 describe('Smoke check', function () {
 
-    // Changing default mocha's timeout (Default is 2 seconds).
-    this.timeout(config.get('api.request.maxTimeout'));
-    var testLogshipperURL = (process.env.LS_QA_URL) ? process.env.LS_QA_URL : 'https://127.0.0.1:8443';
+  // Changing default mocha's timeout (Default is 2 seconds).
+  this.timeout(config.get('api.request.maxTimeout'));
+  var testLogshipperURL = (process.env.LS_QA_URL) ? process.env.LS_QA_URL : 'https://127.0.0.1:8443';
 
-    before(function (done) {
-        done();
+  before(function (done) {
+    done();
+  });
+
+  after(function (done) {
+    done();
+  });
+
+  describe('LogShipper health check', function () {
+
+    beforeEach(function (done) {
+      done();
     });
 
-    after(function (done) {
-        done();
+    afterEach(function (done) {
+      done();
     });
 
-    describe('LogShipper health check', function () {
+    it('should return success response code when getting health check request to logshipper master app',
+      function (done) {
+        var expectedMessage = 'Everything is OK';
 
-        beforeEach(function (done) {
+        request(testLogshipperURL)
+          .get('/v1/healthcheck')
+          .expect(200)
+          .end(function (err, res) {
+            if (err) {
+              throw err;
+            }
+            var responseJson = JSON.parse(res.text);
+            responseJson.message.should.be.equal(expectedMessage);
             done();
-        });
-
-        afterEach(function (done) {
-            done();
-        });
-
-        it('should return success response code when getting health check request to logshipper master app',
-           function (done) {
-               var expectedMessage = 'Everything is OK';
-
-               request(testLogshipperURL)
-                   .get('/v1/healthcheck')
-                   .expect(200)
-                   .end(function(err, res) {
-                       if (err) {
-                           throw err;
-                       }
-                       var responseJson = JSON.parse(res.text);
-                       responseJson.message.should.be.equal(expectedMessage);
-                       done();
-                   });
-           });
-    });
+          });
+      });
+  });
 });
