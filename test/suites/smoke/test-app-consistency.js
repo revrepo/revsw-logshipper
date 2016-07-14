@@ -26,7 +26,7 @@ describe('Smoke check', function () {
 
   // Changing default mocha's timeout (Default is 2 seconds).
   this.timeout(config.get('api.request.maxTimeout'));
-  var testLogshipperURL = (process.env.LS_QA_URL) ? process.env.LS_QA_URL : 'https://127.0.0.1:8443';
+  var testLogshipperURL = config.get('logshipper_url');
 
   before(function (done) {
     done();

@@ -14,5 +14,7 @@
   "service": {
     "key_path": "./config/ssl_certs/server.key",
     "cert_path": "./config/ssl_certs/server.crt"
-  }
+  },
+  "logs_shipping_span_sec": 20,
+  "logs_cleaning_span_sec": 40
 }

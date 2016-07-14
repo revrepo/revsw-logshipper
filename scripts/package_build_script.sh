@@ -71,6 +71,7 @@ cp -rp $WORKSPACE/scripts/logrotate_revsw-logshipper $foldername/etc/logrotate.d
 
 mkdir -p $foldername/opt/$PackageName/config
 mkdir -p $foldername/opt/$PackageName/uploads
+mkdir -p $foldername/opt/$PackageName/scripts
 
 cp -rf  $WORKSPACE/bin  $foldername/opt/$PackageName/
 cp -rf  $WORKSPACE/lib  $foldername/opt/$PackageName/
@@ -82,6 +83,7 @@ cp -rf  $WORKSPACE/config/*.json  $foldername/opt/$PackageName/config/
 cp -rf  $WORKSPACE/config/dev_ssl_certs  $foldername/opt/$PackageName/config/
 cp -rf  $WORKSPACE/config/version.txt  $foldername/opt/$PackageName/config
 cp -rf  $WORKSPACE/package.json $foldername/opt/$PackageName/
+cp -rf  $WORKSPACE/scripts/syslog-logshipper.conf $foldername/opt/$PackageName/scripts/
 
 mkdir -p $foldername/opt/$PackageName/log
 

@@ -130,6 +130,7 @@
       "domain_name": "www.google-test.com"
     }
   },
+  "logshipper_url": "https://testsjc20-ls01.revsw.net:8443",
   "stats_api": {
     "server": "https://testsjc20-statsapi01.revsw.net:443",
     "version": "v1",
