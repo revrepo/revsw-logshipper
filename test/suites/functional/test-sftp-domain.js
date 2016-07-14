@@ -45,8 +45,6 @@ describe('Functional check', function () {
   var proxyServers;
   var jobMinutes = 1;
 
-  var testSourceId = '5655668638f201be519f9d87'; // temporary
-
   before(function (done) {
     API.helpers
       .authenticateUser(revAdmin)
