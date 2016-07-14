@@ -21,9 +21,9 @@
 'use strict';
 
 var config = require('config'),
-    mongoose = require('mongoose'),
-    logger = require('revsw-logger')(config.log),
-    utils = require('../../lib/utilities');
+  mongoose = require('mongoose'),
+  logger = require('revsw-logger')(config.log),
+  utils = require('../../lib/utilities');
 
 var DomainConnection = mongoose.createConnection(config.get('portal_mongo.connect_string'));
 
@@ -48,7 +48,7 @@ function DomainConfig(mongoose, connection, options) {
     'created_at': {type: Date, default: Date.now},
     'created_by': {type: String},
     'deleted': {type: Boolean, default: false},
-    'deleted_at': {type: Date,  default: null},
+    'deleted_at': {type: Date, default: null},
     'deleted_by': {type: String},
     'operation': {type: String},
     'enable_ssl': {type: Boolean, default: false},
@@ -86,7 +86,7 @@ DomainConfig.prototype = {
   },
 
   list: function (callback) {
-    this.model.find({deleted: { $ne: true }}, function (err, domains) {
+    this.model.find({deleted: {$ne: true}}, function (err, domains) {
       if (err) {
         callback(err, null);
       }
@@ -101,23 +101,23 @@ DomainConfig.prototype = {
 
   listNamesByIds: function (domainIds, callback) {
     this.model.find({
-      _id: {
-        $in: domainIds
+        _id: {
+          $in: domainIds
+        },
+        deleted: {
+          $ne: true
+        }
       },
-      deleted: {
-        $ne: true
-      }
-    },
-    {
-      domain_name: 1
-    }, function (err, domains) {
-      var results = utils.clone(domains).map(function (r) {
-        r.domain_name = r.domain_name.toLowerCase();
-        delete r.__v;
-        return r;
+      {
+        domain_name: 1
+      }, function (err, domains) {
+        var results = utils.clone(domains).map(function (r) {
+          r.domain_name = r.domain_name.toLowerCase();
+          delete r.__v;
+          return r;
+        });
+        callback(err, results);
       });
-      callback(err, results);
-    });
   }
 };
 

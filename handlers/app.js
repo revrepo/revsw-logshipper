@@ -32,39 +32,39 @@ var DomainConfigs = Promise.promisifyAll(require('../models/portal/DomainConfig'
 var Apps = Promise.promisifyAll(require('../models/portal/App').Apps);
 
 //  ---------------------------------
-var commons = require( '../lib/commons' );
+var commons = require('../lib/commons');
 
 //  ----------------------------------------------------------------------------------------------//
 
-exports.healthCheck = function( request, reply ) {
+exports.healthCheck = function (request, reply) {
   var version = fs.readFileSync(config.get('version_file'), {
     encoding: 'utf8'
   });
 
 
   return LogShippingJobs.listShippingJobsAsync()
-      .then(function(jobs) {
-        return DomainConfigs.listAsync();
-      })
-      .then(function(domainConfigs) {
-        return Apps.listAsync();
-      })
-      .then(function(apps) {
-        return reply({
-          message: 'Everything is OK',
-          version: version
-        });
-      })
-      .catch(function(error) {
-        return reply({
-          message: 'Error: ' + error.message,
-          version: version.trim()
-        });
+    .then(function (jobs) {
+      return DomainConfigs.listAsync();
+    })
+    .then(function (domainConfigs) {
+      return Apps.listAsync();
+    })
+    .then(function (apps) {
+      return reply({
+        message: 'Everything is OK',
+        version: version
       });
+    })
+    .catch(function (error) {
+      return reply({
+        message: 'Error: ' + error.message,
+        version: version.trim()
+      });
+    });
 };
 
-exports.logshipperJobsQueue = function(request, reply) {
-    // TODO: remove or add queue status from worker with cluster messages
+exports.logshipperJobsQueue = function (request, reply) {
+  // TODO: remove or add queue status from worker with cluster messages
   reply({
     message: 'OK'
   });

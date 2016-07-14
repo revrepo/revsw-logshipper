@@ -2,10 +2,13 @@
   "logshipper": {
     "ftp": {
       "host": "testsjc20-jenkins01.revsw.net"
-    },
-    "sftp": {
-      "host": "testsjc20-jenkins01.revsw.net"
     }
+  },
+  "cds": {
+    "protocol": "https",
+    "name": "testsjc20-cds01.revsw.net",
+    "port": 9000,
+    "token": "sdtq34tqsdfasfdsdKJHIJHKJH656HGFhfyhgf"
   },
   "api": {
     "host": {

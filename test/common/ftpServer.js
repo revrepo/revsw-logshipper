@@ -23,53 +23,53 @@ var path = require('path');
 
 var server;
 var options = {
-    host: utils.getLocalIP(),
-    port: '3021',
-    tls: null
+  host: utils.getLocalIP(),
+  port: '3021',
+  tls: null
 };
 
 console.log(options);
 
 server = new ftpd.FtpServer(options.host, {
-    getInitialCwd: function() {
-        return '/';
-    },
-    getRoot: function() {
-        console.log(path.join(__dirname, config.get('logshipper.ftp.root')));
-        return path.join(__dirname, config.get('logshipper.ftp.root'));
-    },
-    pasvPortRangeStart: 1025,
-    pasvPortRangeEnd: 1050,
-    tlsOptions: options.tls,
-    allowUnauthorizedTls: true,
-    useWriteFile: false,
-    useReadFile: false,
-    uploadMaxSlurpSize: 7000
+  getInitialCwd: function () {
+    return '/';
+  },
+  getRoot: function () {
+    console.log(path.join(__dirname, config.get('logshipper.ftp.root')));
+    return path.join(__dirname, config.get('logshipper.ftp.root'));
+  },
+  pasvPortRangeStart: 1025,
+  pasvPortRangeEnd: 1050,
+  tlsOptions: options.tls,
+  allowUnauthorizedTls: true,
+  useWriteFile: false,
+  useReadFile: false,
+  uploadMaxSlurpSize: 7000
 });
 
-server.on('error', function(error) {
-    console.log('FTP Server error:', error);
+server.on('error', function (error) {
+  console.log('FTP Server error:', error);
 });
 
-server.on('client:connected', function(connection) {
-    var username = null;
-    console.log('client connected: ' + connection.remoteAddress);
-    connection.on('command:user', function(user, success, failure) {
-        if (user) {
-            username = user;
-            success('ok');
-        } else {
-            failure();
-        }
-    });
+server.on('client:connected', function (connection) {
+  var username = null;
+  console.log('client connected: ' + connection.remoteAddress);
+  connection.on('command:user', function (user, success, failure) {
+    if (user) {
+      username = user;
+      success('ok');
+    } else {
+      failure();
+    }
+  });
 
-    connection.on('command:pass', function(pass, success, failure) {
-        if (pass) {
-            success(username);
-        } else {
-            failure();
-        }
-    });
+  connection.on('command:pass', function (pass, success, failure) {
+    if (pass) {
+      success(username);
+    } else {
+      failure();
+    }
+  });
 });
 
 server.debugging = 1;

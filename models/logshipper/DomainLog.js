@@ -21,64 +21,62 @@
 'use strict';
 
 var config = require('config'),
-    mongoose = require('mongoose'),
-    _ = require('lodash'),
-    commons = require('../../lib/commons'),
-    logger = require('revsw-logger')(config.log),
-    utils = require('../../lib/utilities');
+  mongoose = require('mongoose'),
+  _ = require('lodash'),
+  commons = require('../../lib/commons'),
+  logger = require('revsw-logger')(config.log),
+  utils = require('../../lib/utilities');
 
 var DomainLogConnection = mongoose.createConnection(config.get('logshipper_mongo.connect_string'));
 
 function DomainLog(mongoose, connection, options) {
-    this.options = options;
-    this.Schema = mongoose.Schema;
-    this.ObjectId = this.Schema.ObjectId;
+  this.options = options;
+  this.Schema = mongoose.Schema;
+  this.ObjectId = this.Schema.ObjectId;
 
-    this.DomainLogSchema = new this.Schema({
+  this.DomainLogSchema = new this.Schema({});
 
-    });
-
-    this.model = connection.model('DomainLog', this.DomainLogSchema, 'DomainsLog');
+  this.model = connection.model('DomainLog', this.DomainLogSchema, 'DomainsLog');
 }
 
 mongoose.set('debug', config.get('mongoose_debug_logging'));
 
 DomainLog.prototype = {
-    listByJobs: function (jobs, callback) {
-        var conditionsArray = jobs.map( function(job) {
-            return {
-                domain: job.domain_name,
-                unixtime: {
-                    $gte: job.span.from, $lte: job.span.to
-                }
-            };
+  listByJobs: function (jobs, callback) {
+    var conditionsArray = jobs.map(function (job) {
+      return {
+        domain: job.domain_name,
+        unixtime: {
+          $gte: job.span.from, $lte: job.span.to
+        }
+      };
+    });
+
+    logger.debug('DomainLog.listByJobs, $where', conditionsArray);
+    this.model.find({
+      $or: conditionsArray
+    })
+      .sort({
+        unixtime: 1
+      })
+      .limit(config.logs_shipping_max_records)
+      .exec(function (err, logs) {
+        var results = utils.clone(logs).map(function (r) {
+          delete r.__v;
+          return r;
         });
+        callback(err, results);
+      });
+  },
 
-        logger.debug('DomainLog.listByJobs, $where', conditionsArray);
-        this.model.find({
-                $or: conditionsArray
-            })
-            .sort({
-                unixtime: 1
-            })
-            .limit(config.logs_shipping_max_records)
-            .exec(function(err, logs) {
-                var results = utils.clone(logs).map(function (r) {
-                    delete r.__v;
-                    return r;
-                });
-                callback(err, results);
-            });
-    },
-
-    clean: function(callback) {
-        var threshold = { $lte: ( Date.now() / 1000 - config.logs_max_age_hr * 3600/*sec*/ ) };
-        this.model.remove({
-                unixtime: threshold
-            }, function (err, data) {
-                callback(err, data.result);
-            });
-    }
+  clean: function (callback) {
+    var threshold = {$lte: ( Date.now() / 1000 - config.logs_max_age_hr * 3600/*sec*/ )};
+    this.model.remove({
+      unixtime: threshold
+    }, function (err, data) {
+      callback(err, data.result);
+    });
+  }
 };
 
 exports.DomainLogs = new DomainLog(mongoose, DomainLogConnection);

@@ -25,11 +25,11 @@
  * @constructor
  */
 var APITestError = function (message, error, data) {
-    this.name = 'APITestError';
-    this.message = this.name + ': ' + (message || 'Error Message') + ' - \n\t' +
+  this.name = 'APITestError';
+  this.message = this.name + ': ' + (message || 'Error Message') + ' - \n\t' +
     'Data sent: ' + JSON.stringify(data) + '\n\t' +
     'Error received: ' + JSON.stringify(error);
-    this.stack = (new Error()).stack;
+  this.stack = (new Error()).stack;
 };
 
 // Inherit from Error

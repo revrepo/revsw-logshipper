@@ -19,104 +19,104 @@
 var Client = require('aws-sdk');
 var Promise = require('bluebird');
 
-var S3Client = function() {
-    this.client = false;
+var S3Client = function () {
+  this.client = false;
 };
 
-S3Client.prototype.connect = function(host, username, password, callback) {
-    var self = this;
+S3Client.prototype.connect = function (host, username, password, callback) {
+  var self = this;
 
-    if (!self.client) {
-        try {
-            console.log('s3 credentials', username, password);
-            Client.config.update({
-                accessKeyId: username,
-                secretAccessKey: password
-            });
-            self.client = new Client.S3({params: {Bucket: host}});
+  if (!self.client) {
+    try {
+      console.log('s3 credentials', username, password);
+      Client.config.update({
+        accessKeyId: username,
+        secretAccessKey: password
+      });
+      self.client = new Client.S3({params: {Bucket: host}});
 
-            callback(null);
-        } catch(error) {
-            callback(error);
-        }
-    } else {
-        callback(new Error('Client is already connected'), null);
+      callback(null);
+    } catch (error) {
+      callback(error);
     }
+  } else {
+    callback(new Error('Client is already connected'), null);
+  }
 };
 
-S3Client.prototype.list = function(bucket, callback) {
-    var self = this;
-    if (self.client) {
-        var params = {
-            Bucket: bucket
-        };
+S3Client.prototype.list = function (bucket, callback) {
+  var self = this;
+  if (self.client) {
+    var params = {
+      Bucket: bucket
+    };
 
-        self.client.listObjects(params, function(err, data) {
-            if (err) {
-                callback(err, null);
-            } else {
-                callback(null, data.Contents);
-            }
-        });
-    } else {
-        callback(new Error('S3 is not connected'), null);
-    }
+    self.client.listObjects(params, function (err, data) {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, data.Contents);
+      }
+    });
+  } else {
+    callback(new Error('S3 is not connected'), null);
+  }
 };
 
-S3Client.prototype.download = function(filename, bucket, dest, callback) {
-    // Deprecated
-    // var self = this;
-    // if (self.client) {
-    //     var params = {
-    //         Bucket: bucket,
-    //         IfMatch: filename
-    //     };
-    //     s3.getObject(params, function(err, data) {
-    //         if (err) console.log(err, err.stack); // an error occurred
-    //         else     console.log(data);           // successful response
-    //     });
-    // } else {
-    //     callback(new Error('S3 is not connected'), null);
-    // }
+S3Client.prototype.download = function (filename, bucket, dest, callback) {
+  // Deprecated
+  // var self = this;
+  // if (self.client) {
+  //     var params = {
+  //         Bucket: bucket,
+  //         IfMatch: filename
+  //     };
+  //     s3.getObject(params, function(err, data) {
+  //         if (err) console.log(err, err.stack); // an error occurred
+  //         else     console.log(data);           // successful response
+  //     });
+  // } else {
+  //     callback(new Error('S3 is not connected'), null);
+  // }
 };
 
-S3Client.prototype.deleteMany = function(bucket, files, callback) {
-    var self = this;
+S3Client.prototype.deleteMany = function (bucket, files, callback) {
+  var self = this;
 
-    if (self.client) {
-        var params = {
-            Bucket: bucket,
-            Delete: {
-                Objects: files.map(function(file) {
-                             //return {Key: 'https://s3.amazonaws.com/' + bucket + '/' + key};
-                             return {
-                                 Key: file.Key
-                             };
-                         }),
-                Quiet: false
-            },
-            RequestPayer: 'logshipper'
-        };
-        self.client.deleteObjects(params, function(err, data) {
-            if (err) {
-                callback(err, null);
-            } else {
-                callback(null, data);
-            }
-        });
-    } else {
-        callback(new Error('S3 is not connected'), null);
-    }
+  if (self.client) {
+    var params = {
+      Bucket: bucket,
+      Delete: {
+        Objects: files.map(function (file) {
+          //return {Key: 'https://s3.amazonaws.com/' + bucket + '/' + key};
+          return {
+            Key: file.Key
+          };
+        }),
+        Quiet: false
+      },
+      RequestPayer: 'logshipper'
+    };
+    self.client.deleteObjects(params, function (err, data) {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, data);
+      }
+    });
+  } else {
+    callback(new Error('S3 is not connected'), null);
+  }
 };
 
-S3Client.prototype.close = function(callback) {
-    var self = this;
-    if (self.client) {
-        self.client = false;
-        callback();
-    } else {
-        callback(new Error('S3 is not connected'), null);
-    }
+S3Client.prototype.close = function (callback) {
+  var self = this;
+  if (self.client) {
+    self.client = false;
+    callback();
+  } else {
+    callback(new Error('S3 is not connected'), null);
+  }
 };
 
 module.exports = S3Client;

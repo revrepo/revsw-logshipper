@@ -22,12 +22,12 @@
 //  ----------------------------------------------------------------------------------------------//
 
 var Hapi = require('hapi'),
-    fs = require('fs'),
-    config = require('config'),
-    commons = require('../lib/commons'),
-    logger = require('revsw-logger')(config.log),
-    cluster = require('cluster'),
-    Queue = require('../lib/queue');
+  fs = require('fs'),
+  config = require('config'),
+  commons = require('../lib/commons'),
+  logger = require('revsw-logger')(config.log),
+  cluster = require('cluster'),
+  Queue = require('../lib/queue');
 
 //  init cluster ---------------------------------------------------------------------------------//
 
@@ -37,14 +37,14 @@ if (cluster.isMaster) {
   //  ---------------------------------
   //  main cluster process setup
 
-  logger.info( 'Master pid ' + process.pid );
+  logger.info('Master pid ' + process.pid);
 
   //  run workers
 
   if (config.run_logshipping_jobs === true) {
     //  create `uploads` directory
     var mkdirp = require('mkdirp');
-    mkdirp.sync(commons.toUploadsPath( '' ));
+    mkdirp.sync(commons.toUploadsPath(''));
 
     // fork log shipping process with cluster
     var logShippingWorker = cluster.fork({worker_name: 'shipping'});
@@ -59,7 +59,7 @@ if (cluster.isMaster) {
     logger.info('Log Cleaning Service is disabled per configuration');
   }
 
-  cluster.on('exit', function(worker, code, signal) {
+  cluster.on('exit', function (worker, code, signal) {
     if (worker === logShippingWorker) {
       logger.warn('logshipping worker(' + worker.process.pid + ') died, respawning');
       logShippingWorker = cluster.fork({worker_name: 'shipping'});
@@ -77,10 +77,10 @@ if (cluster.isMaster) {
     port: config.get('service.https_port'),
     tls: {
       key: fs.readFileSync(config.get('service.key_path')),
-      cert: fs.readFileSync(config.get( 'service.cert_path'))
+      cert: fs.readFileSync(config.get('service.cert_path'))
     },
-    routes: { 
-      cors: true 
+    routes: {
+      cors: true
     }
   });
 
@@ -90,7 +90,7 @@ if (cluster.isMaster) {
   });
 
   //  redirect all non-HTTPS requests to HTTPS
-  server.ext('onRequest', function(request, reply) {
+  server.ext('onRequest', function (request, reply) {
     var https_port = config.get('service.https_port');
     if (request.connection.info.port !== https_port) {
       return reply.redirect('https://' + request.info.hostname +
@@ -101,19 +101,19 @@ if (cluster.isMaster) {
   });
 
   // register hapi routes
-  server.register( {
+  server.register({
     register: require('hapi-router'),
     options: {
       routes: 'routes/*.js'
     }
-  }, function(err) {
+  }, function (err) {
     if (err) {
       throw err;
     }
   });
 
   // start hapi server
-  server.start(function() {
+  server.start(function () {
     logger.info('hapi server started, ' + server.info.uri);
   });
 
@@ -136,9 +136,9 @@ if (cluster.isMaster) {
     jobsQueue.run(true /*fresh start*/);
 
     // repeat queue run every config.logs_shipping_span_sec seconds
-    setInterval(function() {
+    setInterval(function () {
       jobsQueue.run();
-    }, ( config.logs_shipping_span_sec * 1000 ) );
+    }, ( config.logs_shipping_span_sec * 1000 ));
 
     // TODO: Maybe share queue with messages
     //process.on('message', function(message) {
@@ -151,14 +151,14 @@ if (cluster.isMaster) {
     logger.info('logs cleaning worker started, process id ' + process.pid);
 
     // run clean queue with timeout
-    setTimeout(function() {
+    setTimeout(function () {
 
       // repeat clean queue every config.logs_cleaning_span_sec seconds
-      setInterval(function() {
+      setInterval(function () {
         jobsQueue.clean();
       }, (config.logs_cleaning_span_sec * 1000 ));
 
-    }, config.logs_shipping_span_sec * 500 /*shift on half of logshipping interval*/ );
+    }, config.logs_shipping_span_sec * 500 /*shift on half of logshipping interval*/);
 
   }
 

@@ -24,153 +24,217 @@ var path = require('path');
 var config = require('config');
 var API = require('./../../common/api');
 var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs');
+var utils = require('./../../common/utils');
 
 var ElasticSearchClient = require('./../../common/elasticClient');
 
 describe('Functional check', function () {
 
-    // Changing default mocha's timeout (Default is 2 seconds).
-    this.timeout(config.get('api.request.maxTimeout'));
+  // Changing default mocha's timeout (Default is 2 seconds).
+  this.timeout(config.get('api.request.maxTimeout'));
 
-    var revAdmin = config.get('api.users.revAdmin');
-    var reseller = config.get('api.users.reseller');
+  var revAdmin = config.get('api.users.revAdmin');
+  var reseller = config.get('api.users.reseller');
 
-    var account;
-    var firstLsJ;
-    var firstDc;
-    var elasticClient;
-    var jobMinutes = 1;
+  var account;
+  var firstLsJ;
+  var firstDc;
+  var elasticClient;
+  var jobMinutes = 1;
+  var proxyServers;
 
-    var testSourceId = '5655668638f201be519f9d87'; // temporary
 
-    before(function (done) {
-        API.helpers
-            .authenticateUser(revAdmin)
-            .then(function () {
-                return API.helpers.accounts.createOne();
-            })
-            .then(function (newAccount) {
-                account = newAccount;
-            })
-            .then(function() {
-                return API.helpers.domainConfigs.createOne(account.id, 'LS-TEST');
-            })
-            .then(function (domainConfig) {
-                firstDc = domainConfig;
-            })
-            .then(function () {
-                return API.helpers.logShippingJobs.createOne(account.id);
-            })
-            .then(function (logShippingJob) {
-                firstLsJ = logShippingJob;
-            })
-            .then(function () {
-                var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
-                    account.id,
-                    'elasticsearch',
-                    'domain',
-                    testSourceId,
-                    'active'
-                );
-                return API.resources.logShippingJobs
-                    .update(firstLsJ.id, firstLsJConfig)
-                    .expect(200)
-                    .then(function(res) {
-                        firstLsJConfig.id = firstLsJ.id;
-                        firstLsJ = firstLsJConfig;
-                        done();
-                    })
-                    .catch(done);
-            })
-            .catch(done);
-    });
-
-    after(function (done) {
-        API.helpers
-            .authenticateUser(revAdmin)
-            .then(function () {
-                return API.resources.domainConfigs.deleteOne(firstDc.id);
-            })
-            .then(function () {
-                return API.resources.logShippingJobs.deleteOne(firstLsJ.id);
-            })
-            .then(function() {
-                return API.resources.accounts.deleteAllPrerequisites(done);
-            })
-            .catch(done);
-    });
-
-    describe('Destination ElasticSearch, Source type Domain', function () {
-
-        beforeEach(function (done) {
+  before(function (done) {
+    API.helpers
+      .authenticateUser(revAdmin)
+      .then(function () {
+        return utils.getProxyServers();
+      })
+      .then(function (servers) {
+        proxyServers = servers;
+      })
+      .then(function () {
+        return API.helpers.accounts.createOne();
+      })
+      .then(function (newAccount) {
+        account = newAccount;
+      })
+      .then(function () {
+        return API.helpers.domainConfigs.createOne(account.id);
+      })
+      .then(function (domainConfig) {
+        firstDc = domainConfig;
+      })
+      .then(function () {
+        return API.helpers.logShippingJobs.createOne(account.id);
+      })
+      .then(function (logShippingJob) {
+        firstLsJ = logShippingJob;
+      })
+      .then(function () {
+        var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
+          account.id,
+          'elasticsearch',
+          'domain',
+          firstDc.id,
+          'active'
+        );
+        return API.resources.logShippingJobs
+          .update(firstLsJ.id, firstLsJConfig)
+          .expect(200)
+          .then(function (res) {
+            firstLsJConfig.id = firstLsJ.id;
+            firstLsJ = firstLsJConfig;
             done();
-        });
+          })
+          .catch(done);
+      })
+      .catch(done);
+  });
 
-        afterEach(function (done) {
+  after(function (done) {
+    API.helpers
+      .authenticateUser(revAdmin)
+      .then(function () {
+        return API.resources.domainConfigs.deleteOne(firstDc.id);
+      })
+      .then(function () {
+        return API.resources.logShippingJobs.deleteOne(firstLsJ.id);
+      })
+      .then(function () {
+        return API.resources.accounts.deleteAllPrerequisites(done);
+      })
+      .catch(done);
+  });
+
+  describe('Destination ElasticSearch, Source type Domain', function () {
+
+    beforeEach(function (done) {
+      done();
+    });
+
+    afterEach(function (done) {
+      done();
+    });
+
+    it('should connect to test elastic search', function (done) {
+      elasticClient = new ElasticSearchClient();
+      elasticClient.connect(
+        firstLsJ.destination_host,
+        firstLsJ.destination_port,
+        function (err) {
+          if (!err) {
             done();
-        });
-
-        it('should connect to test elastic search', function (done) {
-            elasticClient = new ElasticSearchClient();
-            elasticClient.connect(
-                firstLsJ.destination_host,
-                firstLsJ.destination_port,
-                function(err) {
-                    if (!err) {
-                        done();
-                    } else {
-                        throw err;
-                    }
-                });
-        });
-
-        it('should delete elastic index', function (done) {
-            elasticClient.deleteIndex(
-                firstLsJ.destination_key,
-                function (err, data) {
-                    if (!err) {
-                        done();
-                    } else {
-                        throw err;
-                    }
-                });
-        });
-
-        it('should get logshipper objects list from elastic', function (done) {
-            var noIndexErrorMessage = 'IndexMissingException[[' +
-                firstLsJ.destination_key + '] missing]';
-            elasticClient.list(
-                'logshipper',
-                firstLsJ.destination_key,
-                function(err, hits) {
-                    if (!err) {
-                        hits.length.should.be.equal(0);
-                        done();
-                    } else {
-                        if (err.message !== noIndexErrorMessage) {
-                            throw err;
-                        } else {
-                            done();
-                        }
-                    }
-                });
-        });
-
-        it('should complete logshipping job and send logs to elastic in ' + jobMinutes +
-            ' minutes', function (done) {
-            setTimeout(function() {
-                elasticClient.list(
-                    'logshipper',
-                    firstLsJ.destination_key,
-                    function(err, hits) {
-                        if (!err) {
-                            hits.length.should.be.above(0);
-                            done();
-                        } else {
-                            throw err;
-                        }
-                });
-            }, jobMinutes * 60 * 1000);
+          } else {
+            throw err;
+          }
         });
     });
+
+    it('should delete elastic index', function (done) {
+      elasticClient.deleteIndex(
+        firstLsJ.destination_key,
+        function (err, data) {
+          if (!err) {
+            done();
+          } else {
+            throw err;
+          }
+        });
+    });
+
+    it('should get logshipper objects list from elastic', function (done) {
+      var noIndexErrorMessage = 'IndexMissingException[[' +
+        firstLsJ.destination_key + '] missing]';
+      elasticClient.list(
+        'logshipper',
+        firstLsJ.destination_key,
+        function (err, hits) {
+          if (!err) {
+            hits.length.should.be.equal(0);
+            done();
+          } else {
+            if (err.message !== noIndexErrorMessage) {
+              throw err;
+            } else {
+              done();
+            }
+          }
+        });
+    });
+
+    it('should send requests to recently created domain config to generate logs in 2 minutes', function (done) {
+      setTimeout(function () {
+        var productionProxyServers = proxyServers
+          .filter(function (server) {
+            return server.environment === 'prod' && server.status === 'online';
+          })
+          .map(function (server) {
+            return server.server_name.toLowerCase();
+          });
+
+        var stagingProxyServers = proxyServers
+          .filter(function (server) {
+            return server.environment === 'staging' && server.status === 'online';
+          })
+          .map(function (server) {
+            return server.server_name.toLowerCase();
+          });
+        var proxyRequests = [];
+        productionProxyServers.forEach(function (server) {
+          proxyRequests.push(
+            utils.sendProxyServerRequest(server, firstDc.domain_name)
+          );
+        });
+        stagingProxyServers.forEach(function (server) {
+          proxyRequests.push(
+            utils.sendProxyServerRequest(server, firstDc.domain_name)
+          );
+        });
+        return Promise.all(proxyRequests)
+          .then(function () {
+            done();
+          })
+          .catch(function (error) {
+            return Promise.reject(error);
+          });
+      }, 120 * 1000);
+    });
+
+    it('should complete logshipping job and send logs to elastic in ' + jobMinutes +
+      ' minutes', function (done) {
+      setTimeout(function () {
+        elasticClient.list(
+          'logshipper',
+          firstLsJ.destination_key,
+          function (err, hits) {
+            if (!err) {
+              hits.length.should.be.above(0);
+              done();
+            } else {
+              throw err;
+            }
+          });
+      }, jobMinutes * 60 * 1000);
+    });
+
+    it('should stop logshipping job for elastic', function (done) {
+      var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
+        account.id,
+        'elasticsearch',
+        'domain',
+        firstDc.id,
+        'stop'
+      );
+      API.resources.logShippingJobs
+        .update(firstLsJ.id, firstLsJConfig)
+        .expect(200)
+        .then(function () {
+          done();
+        })
+        .catch(function (error) {
+          throw error;
+        });
+    });
+  });
 });
