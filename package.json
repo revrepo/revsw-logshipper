@@ -58,10 +58,5 @@
     "supertest": "^1.1.0",
     "supertest-as-promised": "^2.0.2",
     "yargs": "^3.31.0"
-  },
-  "config": {
-    "ghooks": {
-      "pre-commit": "npm run lint"
-    }
   }
 }
