@@ -109,8 +109,10 @@ DomainConfig.prototype = {
         }
       },
       {
-        domain_name: 1
-      }, function (err, domains) {
+        domain_name: 1,
+        proxy_config: 1
+      },
+      function (err, domains) {
         var results = utils.clone(domains).map(function (r) {
           r.domain_name = r.domain_name.toLowerCase();
           delete r.__v;

@@ -48,7 +48,7 @@ var DomainConfigsDataProvider = {
   generateOne: function (accountId, prefix) {
     var _prefix = prefix || this.prefix;
     return {
-      'domain_name':(_prefix + '-' + Date.now() + '.revsw.net').toLowerCase(),
+      'domain_name': (_prefix + '-' + Date.now() + '.revsw.net').toLowerCase(),
       'account_id': accountId,
       'origin_host_header': 'testsjc20-website01.revsw.net',
       'origin_server': 'testsjc20-website01.revsw.net',
@@ -64,10 +64,10 @@ var DomainConfigsDataProvider = {
    * domain-configs REST API end points accept.
    *
    * @param accountId, Account id to use for domain config
-   * @param prefix, any prefix to add in domain name/values
+   * @param domainName, created config domainId
    * @returns {Full Domain Config}
    */
-  generateFull: function (accountId, prefix) {
+  generateFull: function (accountId, domainName) {
     var fullConfig = {
       '3rd_party_rewrite': {
         '3rd_party_root_rewrite_domains': '',
@@ -134,17 +134,20 @@ var DomainConfigsDataProvider = {
         'js_choice': 'medium',
         'mode': 'moderate'
       },
-      'origin_server': 'API-QA-config.revsw.net',
-      'origin_host_header': 'API-QA-website01.revsw.net',
+      'domain_name': domainName,
       'account_id': accountId,
+      'origin_host_header': 'testsjc20-website01.revsw.net',
+      'origin_server': 'testsjc20-website01.revsw.net',
+      'origin_server_location_id': '55a56fa6476c10c329a90741',
       'tolerance': '3000',
-      'origin_server_location_id': '55a56fa6476c10c329a90741'
+      'proxy_config': {
+        'domain_aliases': [
+          'alias-' + domainName
+        ],
+        'domain_wildcard_alias': '*.' + domainName
+      }
     };
-    if (prefix) {
-      fullConfig.origin_host_header = 'API-QA-website01' +
-        prefix + '.revsw.net';
-      return fullConfig;
-    }
+
     return fullConfig;
   },
 

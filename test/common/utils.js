@@ -59,13 +59,13 @@ module.exports = {
       });
   },
 
-  sendProxyServerRequest: function (serverHost, domainName) {
+  sendProxyServerRequest: function (serverHost, domainName, port) {
     return agent('http://' + serverHost)
       .get('/')
       .set('Host', domainName)
       .expect(200)
       .then(function (res) {
-        return agent('http://' + serverHost + ':18000')
+        return agent('http://' + serverHost + ':' + (port || 18000))
           .get('/')
           .set('Host', domainName)
           .expect(200)

@@ -81,7 +81,7 @@ var LogShippingJobsDataProvider = {
       username = 'logshipper';
       password = 'logshipper';
     } else if (destination === 'sftp') {
-      destinationHost = 'yegordia.xyz';
+      destinationHost = '185.46.10.249';
       destinationPort = '22';
       username = 'revsw';
       password = 'password';
