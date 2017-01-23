@@ -44,12 +44,29 @@ mongoose.set('debug', config.get('mongoose_debug_logging'));
 DomainLog.prototype = {
   listByJobs: function (jobs, callback) {
     var conditionsArray = jobs.map(function (job) {
-      return {
+      var query = {
         domain: job.domain_name,
         unixtime: {
           $gte: job.span.from, $lte: job.span.to
         }
       };
+
+      if (job.domain_aliases) {
+        var domainNames = job.domain_aliases.slice();
+        domainNames.push(job.domain_name);
+        query.domain = {$in: domainNames};
+      }
+
+      if (job.domain_wildcard_alias) {
+        query.$or = [
+          {domain: query.domain},
+          {domain: {$regex: job.domain_wildcard_alias.substring(1)}}
+        ];
+
+        delete query.domain;
+      }
+
+      return query;
     });
 
     logger.debug('DomainLog.listByJobs, $where', conditionsArray);

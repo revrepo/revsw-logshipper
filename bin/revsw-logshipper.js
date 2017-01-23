@@ -31,6 +31,8 @@ var Hapi = require('hapi'),
 
 //  init cluster ---------------------------------------------------------------------------------//
 
+var DEBUG = false; // if debug is true run all workers in master
+
 // check if process is master (not cleaning or shipping fork)
 if (cluster.isMaster) {
 
@@ -41,20 +43,37 @@ if (cluster.isMaster) {
 
   //  run workers
 
+  var jobsQueue;
+  if (DEBUG) {
+    jobsQueue = new Queue();
+  }
+
   if (config.run_logshipping_jobs === true) {
     //  create `uploads` directory
     var mkdirp = require('mkdirp');
     mkdirp.sync(commons.toUploadsPath(''));
 
-    // fork log shipping process with cluster
-    var logShippingWorker = cluster.fork({worker_name: 'shipping'});
+    if (!DEBUG) {
+      // fork log shipping process with cluster
+      var logShippingWorker = cluster.fork({worker_name: 'shipping'});
+    } else {
+      setInterval(function () {
+        jobsQueue.run();
+      }, (config.logs_shipping_span_sec * 1000 ));
+    }
   } else {
     logger.info('Log Shipping Service is disabled per configuration');
   }
 
   if (config.run_logcleaning_jobs === true) {
-    // fork log cleaning process with cluster
-    var logsCleaningWorker = cluster.fork({worker_name: 'cleaning'});
+    if (!DEBUG) {
+      // fork log cleaning process with cluster
+      var logsCleaningWorker = cluster.fork({worker_name: 'cleaning'});
+    } else {
+      setInterval(function () {
+        jobsQueue.clean();
+      }, (config.logs_cleaning_span_sec * 1000 ));
+    }
   } else {
     logger.info('Log Cleaning Service is disabled per configuration');
   }
