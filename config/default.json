@@ -56,5 +56,10 @@
     "https_port": 8443,
     "key_path": "./config/dev_ssl_certs/server.key",
     "cert_path": "./config/dev_ssl_certs/server.crt"
-  }
+  },
+
+  "sendgrid_api_key": "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",
+  "notify_admin_by_email_on_logshipper_job_failures": "",
+  "support_email" : "support@revapm.com",
+  "support_name" : "RevAPM Support Team"
 }

@@ -39,7 +39,8 @@
     "mongodb": "^2.1.18",
     "revsw-logger": "git@github.com:/revrepo/revsw-logger",
     "winston": "^2.2.0",
-    "mongoose": "^4.1.0"
+    "mongoose": "^4.1.0",
+    "sendgrid": "^2.0.0"
   },
   "devDependencies": {
     "chai": "^3.4.1",

@@ -25,5 +25,7 @@
   "service": {
     "key_path": "./config/ssl_certs/server.key",
     "cert_path": "./config/ssl_certs/server.crt"
-  }
+  },
+
+  "notify_admin_by_email_on_logshipper_job_failures": "ops@revsw.com"
 }
