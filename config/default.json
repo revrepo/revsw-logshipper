@@ -46,10 +46,16 @@
   "logs_max_age_hr": 120,
   "uploads_dir": "uploads",
   "queue_failed_retry_num": 2,
+
   "ftp_failed_delay": 5000,
   "ftp_failed_retry_num": 3,
+  "sftp_failed_delay": 5000,
+  "sftp_failed_retry_num": 3,
+  "s3_failed_delay": 5000,
+  "s3_failed_retry_num": 3,
   "es_failed_delay": 5000,
   "es_failed_retry_num": 3,
+
   "service": {
     "host": "0.0.0.0",
     "http_port": 8000,
@@ -60,6 +66,9 @@
 
   "sendgrid_api_key": "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",
   "notify_admin_by_email_on_logshipper_job_failures": "",
+  "notify_developers_by_email_about_bad_implementation": "",
+  "notify_developers_by_email_about_uncaught_exceptions": "",
+
   "support_email" : "support@revapm.com",
   "support_name" : "RevAPM Support Team"
 }
