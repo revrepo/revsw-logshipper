@@ -37,8 +37,10 @@
     "running_status_string":"rsyslog start/running, process ",
     "dead_status_string":"rsyslog stop/waiting",
     "domains_list_tag": "{{DomainsConditionListTAG}}",
-    "header_comment_tag": "{{HeaderCommentTAG}}"
+    "header_comment_tag": "{{HeaderCommentTAG}}",
+    "program_tag": "{{ProgramTAG}}"
   },
+
   "logs_shipping_span_sec": 60,
   "logs_shipping_leeway_sec": 30,
   "logs_shipping_max_records": 5000,
