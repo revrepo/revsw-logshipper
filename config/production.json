@@ -27,5 +27,7 @@
     "cert_path": "./config/ssl_certs/server.crt"
   },
 
-  "notify_admin_by_email_on_logshipper_job_failures": "ops@revsw.com"
+  "notify_admin_by_email_on_logshipper_job_failures": "ops@revsw.com",
+  "notify_developers_by_email_about_bad_implementation": "eng@revsw.com",
+  "notify_developers_by_email_about_uncaught_exceptions": "eng@revsw.com"
 }

@@ -27,7 +27,10 @@ var Hapi = require('hapi'),
   commons = require('../lib/commons'),
   logger = require('revsw-logger')(config.log),
   cluster = require('cluster'),
-  Queue = require('../lib/queue');
+  os = require('os'),
+  Queue = require('../lib/queue'),
+  mail = require('../lib/mail'),
+  boom = require('boom');
 
 //  init cluster ---------------------------------------------------------------------------------//
 
@@ -35,6 +38,24 @@ var DEBUG = false; // if debug is true run all workers in master
 
 // check if process is master (not cleaning or shipping fork)
 if (cluster.isMaster) {
+
+  var notifyEmail = config.get('notify_developers_by_email_about_uncaught_exceptions');
+  if (notifyEmail !== '') {
+    process.on('uncaughtException', function (er) {
+      console.error(er.stack);
+      mail.sendMail({
+        from: config.get('support_email'),
+        to: notifyEmail,
+        subject: process.env.NODE_ENV + ':' + os.hostname() + ' ' + er.message,
+        text: er.stack
+      }, function (er, data) {
+        if (er) {
+          console.error(er);
+        }
+        process.exit(1);
+      });
+    });
+  }
 
   //  ---------------------------------
   //  main cluster process setup
@@ -129,6 +150,31 @@ if (cluster.isMaster) {
     if (err) {
       throw err;
     }
+  });
+
+  server.ext('onPreResponse', function(request, reply) {
+    var response = request.response;
+    if (response.isBoom === true && response.output.statusCode === 500) {
+      var notifyEmailBadImplementation = config.get('notify_developers_by_email_about_bad_implementation');
+      if (notifyEmailBadImplementation !== '') {
+        var err = boom.internal(response.message, response, 500);
+        mail.sendMail({
+          from: config.get('support_email'),
+          to: notifyEmailBadImplementation,
+          subject: '[HAPI Internal Error] ' + process.env.NODE_ENV + ':' + os.hostname() + ' ' + err.message,
+          text: JSON.stringify(err) +
+          '\n\n' + err.stack +
+          '\n\n AUTH : ' + JSON.stringify(request.auth) +
+          '\n\n METHOD : ' + JSON.stringify(request.method) +
+          '\n\n PATH : ' + JSON.stringify(request.path)
+        }, function(er, data) {
+          if (er) {
+            console.error(er);
+          }
+        });
+      }
+    }
+    return reply.continue();
   });
 
   // start hapi server
