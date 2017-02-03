@@ -94,7 +94,7 @@ var LogShippingJobsDataProvider = {
     }
 
     return {
-      job_name: (_prefix + '-' + Date.now() + 'UPDATED-LOGSHIPPER-JOB').toLowerCase(),
+      job_name: ('UPDATED-' + _prefix + '-' + Date.now() + '-LOGSHIPPER-JOB').toLowerCase(),
       account_id: accountId,
       source_type: source,
       source_id: sourceId,
@@ -149,7 +149,7 @@ var LogShippingJobsDataProvider = {
     }
 
     return {
-      job_name: (_prefix + '-' + Date.now() + 'UPDATED-LOGSHIPPER-JOB').toLowerCase(),
+      job_name: ('UPDATED-' + _prefix + '-' + Date.now() + '-LOGSHIPPER-JOB').toLowerCase(),
       account_id: accountId,
       source_type: source,
       source_id: sourceId,
