@@ -23,6 +23,7 @@ var path = require('path');
 var config = require('config');
 var API = require('./../../common/api');
 var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs');
+var utils = require('./../../common/utils');
 
 var FtpClient = require('./../../common/ftpClient');
 
@@ -38,13 +39,19 @@ describe('Negative check', function () {
   var firstLsJ;
   var firstDc;
   var ftpClient;
-  var jobMinutes = 3;
-
-  var testSourceId = '5655668638f201be519f9d87'; // temporary
+  var jobMinutes = 2;
+  var proxyServers;
+  
 
   before(function (done) {
     API.helpers
       .authenticateUser(revAdmin)
+      .then(function () {
+        return utils.getProxyServers();
+      })
+      .then(function (servers) {
+        proxyServers = servers;
+      })
       .then(function () {
         return API.helpers.accounts.createOne();
       })
@@ -68,7 +75,7 @@ describe('Negative check', function () {
           account.id,
           'ftp',
           'domain',
-          testSourceId,
+          firstDc.id,
           'active'
         );
         return API.resources.logShippingJobs
@@ -123,6 +130,44 @@ describe('Negative check', function () {
             throw new Error('Connected to local ftp server somehow');
           }
         });
+    });
+
+    it('should send requests to recently created domain config to generate logs in 1 minutes', function (done) {
+      setTimeout(function () {
+        var productionProxyServers = proxyServers
+          .filter(function (server) {
+            return server.environment === 'prod' && server.status === 'online';
+          })
+          .map(function (server) {
+            return server.server_name.toLowerCase();
+          });
+
+        var stagingProxyServers = proxyServers
+          .filter(function (server) {
+            return server.environment === 'staging' && server.status === 'online';
+          })
+          .map(function (server) {
+            return server.server_name.toLowerCase();
+          });
+        var proxyRequests = [];
+        productionProxyServers.forEach(function (server) {
+          proxyRequests.push(
+            utils.sendProxyServerRequest(server, firstDc.domain_name)
+          );
+        });
+        stagingProxyServers.forEach(function (server) {
+          proxyRequests.push(
+            utils.sendProxyServerRequest(server, firstDc.domain_name)
+          );
+        });
+        return Promise.all(proxyRequests)
+          .then(function () {
+            done();
+          })
+          .catch(function (error) {
+            return Promise.reject(error);
+          });
+      }, 60 * 1000);
     });
 
 

@@ -17,7 +17,6 @@
  */
 
 /*jslint node: true */
-'use strict';
 
 //  ----------------------------------------------------------------------------------------------//
 
@@ -77,6 +76,7 @@ if (cluster.isMaster) {
     if (!DEBUG) {
       // fork log shipping process with cluster
       var logShippingWorker = cluster.fork({worker_name: 'shipping'});
+      logShippingWorker.on('message', statsProcessHandler);
     } else {
       setInterval(function () {
         jobsQueue.run();
@@ -103,6 +103,7 @@ if (cluster.isMaster) {
     if (worker === logShippingWorker) {
       logger.warn('logshipping worker(' + worker.process.pid + ') died, respawning');
       logShippingWorker = cluster.fork({worker_name: 'shipping'});
+      logShippingWorker.on('message', statsProcessHandler);
     } else if (worker === logsCleaningWorker) {
       logger.warn('logscleaning worker(' + worker.process.pid + ') died, respawning');
       logsCleaningWorker = cluster.fork({worker_name: 'cleaning'});
@@ -111,6 +112,61 @@ if (cluster.isMaster) {
 
   //  run simple api server in the main process
   var server = new Hapi.Server();
+
+  server.app.logshipperStats = {
+    jobs_active: 0,
+
+    jobs_collected: 0,
+    jobs_logs_collected: 0,
+
+    jobs_filed: 0,
+    jobs_filed_failed: 0,
+
+    jobs_shipped: 0,
+    jobs_shipping_failed: 0,
+
+    jobs_shipping_failed_by_destination: {
+      s3: 0,
+      ftp: 0,
+      sftp: 0,
+      elasticsearch: 0
+    }
+  };
+
+  function statsProcessHandler(msg) {
+    if (msg.type === 'stats') {
+      switch (msg.state) {
+        case 'jobs_loaded': {
+          server.app.logshipperStats.jobs_active = msg.jobs_count;
+          break;
+        }
+        case 'job_collected': {
+          if (msg.logs_count) {
+            server.app.logshipperStats.jobs_collected++;
+            server.app.logshipperStats.jobs_logs_collected += msg.logs_count;
+          }
+          break;
+        }
+        case 'job_filed': {
+          server.app.logshipperStats.jobs_filed++;
+          break;
+        }
+        case 'job_not_filed': {
+          server.app.logshipperStats.jobs_filed_failed++;
+          break;
+        }
+        case 'job_shipped': {
+          server.app.logshipperStats.jobs_shipped++;
+          break;
+        }
+        case 'job_not_shipped': {
+          server.app.logshipperStats.jobs_shipping_failed++;
+          server.app.logshipperStats.jobs_shipping_failed_by_destination[msg.job_type]++;
+          break;
+        }
+      }
+    }
+  }
 
   server.connection({
     host: config.get('service.host'),
@@ -204,13 +260,6 @@ if (cluster.isMaster) {
     setInterval(function () {
       jobsQueue.run();
     }, ( config.logs_shipping_span_sec * 1000 ));
-
-    // TODO: Maybe share queue with messages
-    //process.on('message', function(message) {
-    //  if (message === 'queue') {
-    //
-    //  }
-    //});
 
   } else if (process.env.worker_name === 'cleaning') {
     logger.info('logs cleaning worker started, process id ' + process.pid);

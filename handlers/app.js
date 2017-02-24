@@ -26,6 +26,7 @@ var config = require('config');
 var fs = require('fs');
 var logger = require('revsw-logger')(config.log);
 var Promise = require('bluebird');
+var utils = require('../lib/utilities');
 
 var LogShippingJobs = Promise.promisifyAll(require('../models/portal/LogShippingJob').LogShippingJobs);
 var DomainConfigs = Promise.promisifyAll(require('../models/portal/DomainConfig').DomainConfigs);
@@ -63,10 +64,7 @@ exports.healthCheck = function (request, reply) {
     });
 };
 
-exports.logshipperJobsQueue = function (request, reply) {
-  // TODO: remove or add queue status from worker with cluster messages
-  reply({
-    message: 'OK'
-  });
+exports.logshipperStatus = function (request, reply) {
+  return utils.renderJSON(request, reply, null, request.server.app.logshipperStats);
 };
 

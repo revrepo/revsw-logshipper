@@ -14,6 +14,8 @@ npm-debug.log*
 sftp-config.json
 config/local.json
 config/local-*.json
+test/config/local-*.json
+test/config/local.json
 sandbox/*
 uploads/*
 package_build_dir/
