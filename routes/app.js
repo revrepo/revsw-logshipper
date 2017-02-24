@@ -50,15 +50,11 @@ module.exports = [
 
   {
     method: 'GET',
-    path: '/v1/queue',
+    path: '/v1/status',
     config: {
-      handler: App.logshipperJobsQueue,
-      description: 'Get the jobs are processing now in logshipper queue',
-      tags: ['api'],
-      validate: {
-        params: {},
-        query: {}
-      }
+      handler: App.logshipperStatus,
+      description: 'Get logshipper collecting, shpping, statistics summary',
+      tags: ['api']
     }
   }
 ];
