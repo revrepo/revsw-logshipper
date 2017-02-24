@@ -133,6 +133,8 @@ if (cluster.isMaster) {
     }
   };
 
+  // We need this block function to access server scope
+  /* jshint ignore:start */
   function statsProcessHandler(msg) {
     if (msg.type === 'stats') {
       switch (msg.state) {
@@ -167,6 +169,7 @@ if (cluster.isMaster) {
       }
     }
   }
+  /* jshint ignore:end */
 
   server.connection({
     host: config.get('service.host'),
