@@ -1,11 +1,10 @@
 /opt/revsw-logshipper/log/*.log
 {
     copytruncate
-    create 755 root root
-    weekly
+    create 0644 root root
+    daily
     rotate 4
-    compress
+    nocompress
     missingok
     notifempty
-    copytruncate
 }
