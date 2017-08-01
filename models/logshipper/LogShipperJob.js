@@ -48,6 +48,9 @@ function LogShipperJob(mongoose, connection, options) {
     }
   });
 
+
+  this.LogShipperJobSchema.index({job_id: 1});
+  this.LogShipperJobSchema.index({status: 1});
   this.model = connection.model('LogShipperJob', this.LogShipperJobSchema, 'Jobs');
 }
 
@@ -135,9 +138,25 @@ LogShipperJob.prototype = {
   },
 
   clean: function (callback) {
-    var threshold = {$lte: ( Date.now() / 1000 - config.logs_max_age_hr * 3600/*sec*/ )};
+    var threshold = {$lte: ( Date.now() / 1000 - config.jobs_max_age_hr * 3600/*sec*/ )};
     this.model.remove({
       'span.to': threshold
+    }, function (err, data) {
+      callback(err, data.result);
+    });
+  },
+
+  listByStatus: function (status, callback) {
+    this.model.find({
+      status: status
+    }, function (err, data) {
+      callback(err, data);
+    });
+  },
+
+  cleanByIds: function (ids, callback) {
+    this.model.remove({
+      job_id: {$in: ids}
     }, function (err, data) {
       callback(err, data.result);
     });

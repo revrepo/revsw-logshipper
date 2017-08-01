@@ -36,6 +36,8 @@ function DomainLog(mongoose, connection, options) {
 
   this.DomainLogSchema = new this.Schema({});
 
+  this.DomainLogSchema.index({unixtime: 1});
+  this.DomainLogSchema.index({domain: 1});
   this.model = connection.model('DomainLog', this.DomainLogSchema, 'DomainsLog');
 }
 
@@ -78,7 +80,8 @@ DomainLog.prototype = {
       })
       .limit(config.logs_shipping_max_records)
       .exec(function (err, logs) {
-        var results = utils.clone(logs).map(function (r) {
+        logger.debug('DomainLog.listByJobs, .exec', err, (logs || []).length);
+        var results = utils.clone(logs || []).map(function (r) {
           delete r.__v;
           return r;
         });
@@ -93,6 +96,51 @@ DomainLog.prototype = {
     }, function (err, data) {
       callback(err, data.result);
     });
+  },
+
+  cleanByJobs: function (jobs, callback) {
+    if (!jobs) {
+      callback(null, {n: 0});
+    } else {
+
+      var conditionsArray = jobs.map(function (job) {
+        var query = {
+          domain: job.domain_name
+        };
+
+        if (job.domain_aliases) {
+          var domainNames = job.domain_aliases.slice();
+          domainNames.push(job.domain_name);
+          query.domain = {$in: domainNames};
+        }
+
+        if (job.domain_wildcard_alias) {
+          query.$or = [
+            {domain: query.domain},
+            {domain: {$regex: job.domain_wildcard_alias.substring(1)}}
+          ];
+
+          delete query.domain;
+        }
+
+        return query;
+      });
+
+
+      var threshold = {$lte: ( Date.now() / 1000 - config.logs_max_age_hr * 3600/*sec*/ )};
+
+      var query = {
+        unixtime: threshold
+      };
+
+      if (conditionsArray && conditionsArray.length) {
+        query.$or = conditionsArray;
+      }
+
+      this.model.remove(query, function (err, data) {
+        callback(err, data.result);
+      });
+    }
   }
 };
 

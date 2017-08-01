@@ -46,6 +46,7 @@
   "logs_shipping_max_records": 5000,
   "logs_cleaning_span_sec": 120,
   "logs_max_age_hr": 120,
+  "jobs_max_age_hr": 48,
   "uploads_dir": "uploads",
   "queue_failed_retry_num": 2,
 
