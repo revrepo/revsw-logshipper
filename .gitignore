@@ -20,3 +20,4 @@ sandbox/*
 uploads/*
 package_build_dir/
 packages
+test/common/uploads/*

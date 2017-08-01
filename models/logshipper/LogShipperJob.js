@@ -39,7 +39,7 @@ function LogShipperJob(mongoose, connection, options) {
     'domain_name': {type: String, lowercase: true}, // TODO: should be source_id and source_type
     'status': Number,
     'shipper_type': Number,
-    'span': Number,
+    'span': {},
     'logs': [],
     'shared': {
       'file_to_upload': String,
@@ -140,6 +140,7 @@ LogShipperJob.prototype = {
   clean: function (callback) {
     var threshold = {$lte: ( Date.now() / 1000 - config.jobs_max_age_hr * 3600/*sec*/ )};
     this.model.remove({
+      status: 3,
       'span.to': threshold
     }, function (err, data) {
       callback(err, data.result);
@@ -149,8 +150,9 @@ LogShipperJob.prototype = {
   listByStatus: function (status, callback) {
     this.model.find({
       status: status
-    }, function (err, data) {
-      callback(err, data);
+    }, {__v: 0}, function (err, data) {
+      var results = utils.clone(data);
+      callback(err, results);
     });
   },
 
