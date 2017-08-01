@@ -43,7 +43,7 @@ describe('Functional check', function () {
   var sftpClient;
   // var sftpServerProcess;
   var proxyServers;
-  var jobMinutes = 1;
+  var jobMinutes = 0.5;
 
   before(function (done) {
     API.helpers
@@ -291,7 +291,7 @@ describe('Functional check', function () {
               done();
             });
         });
-      }, 5 * 1000);
+      }, 1 * 1000);
     });
 
     // xit('should stop local sftp server', function (done) {
