@@ -96,7 +96,7 @@ DomainLog.prototype = {
   },
 
   cleanByJobs: function (jobs, callback) {
-    if (!jobs) {
+    if (!jobs || !jobs.length) {
       callback(null, {n: 0});
     } else {
 
@@ -130,6 +130,7 @@ DomainLog.prototype = {
 
       logger.debug('DomainLog.cleanByJobs, $where', conditionsArray);
       this.model.remove({$or: conditionsArray}, function (err, data) {
+        console.log(err);
         callback(err, data.result);
       });
     }
