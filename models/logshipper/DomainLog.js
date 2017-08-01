@@ -71,20 +71,17 @@ DomainLog.prototype = {
       return query;
     });
 
-    logger.debug('DomainLog.listByJobs, $where', conditionsArray);
+    // logger.debug('DomainLog.listByJobs, $where', conditionsArray);
     this.model.find({
       $or: conditionsArray
-    })
+    }, {__v: 0})
       .sort({
         unixtime: 1
       })
       .limit(config.logs_shipping_max_records)
       .exec(function (err, logs) {
         logger.debug('DomainLog.listByJobs, .exec', err, (logs || []).length);
-        var results = utils.clone(logs || []).map(function (r) {
-          delete r.__v;
-          return r;
-        });
+        var results = utils.clone(logs || []);
         callback(err, results);
       });
   },
@@ -105,19 +102,24 @@ DomainLog.prototype = {
 
       var conditionsArray = jobs.map(function (job) {
         var query = {
-          domain: job.domain_name
+          domain: job.domain_name,
+          unixtime: {$lte: job.span.to}
         };
 
         if (job.domain_aliases) {
           var domainNames = job.domain_aliases.slice();
           domainNames.push(job.domain_name);
           query.domain = {$in: domainNames};
+          query.unixtime = {$lte: job.span.to};
         }
 
         if (job.domain_wildcard_alias) {
           query.$or = [
-            {domain: query.domain},
-            {domain: {$regex: job.domain_wildcard_alias.substring(1)}}
+            {domain: query.domain, unixtime: {$lte: job.span.to}},
+            {domain: {
+              $regex: job.domain_wildcard_alias.substring(1)},
+              unixtime: {$lte: job.span.to}
+            }
           ];
 
           delete query.domain;
@@ -126,18 +128,8 @@ DomainLog.prototype = {
         return query;
       });
 
-
-      var threshold = {$lte: ( Date.now() / 1000 - config.logs_max_age_hr * 3600/*sec*/ )};
-
-      var query = {
-        unixtime: threshold
-      };
-
-      if (conditionsArray && conditionsArray.length) {
-        query.$or = conditionsArray;
-      }
-
-      this.model.remove(query, function (err, data) {
+      logger.debug('DomainLog.cleanByJobs, $where', conditionsArray);
+      this.model.remove({$or: conditionsArray}, function (err, data) {
         callback(err, data.result);
       });
     }

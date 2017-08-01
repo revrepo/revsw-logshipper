@@ -43,12 +43,12 @@
 
   "logs_shipping_span_sec": 60,
   "logs_shipping_leeway_sec": 30,
-  "logs_shipping_max_records": 200000,
+  "logs_shipping_max_records": 50000,
   "logs_cleaning_span_sec": 120,
   "logs_max_age_hr": 120,
-  "jobs_max_age_hr": 48,
+  "jobs_max_age_hr": 96,
   "uploads_dir": "uploads",
-  "queue_failed_retry_num": 2,
+  "queue_failed_retry_num": 3,
 
   "ftp_failed_delay": 5000,
   "ftp_failed_retry_num": 3,
