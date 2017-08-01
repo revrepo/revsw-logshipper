@@ -10,7 +10,7 @@
       },
       "File": {
         "filename": "./log/revsw-logshipper.log",
-        "level": "info",
+        "level": "debug",
         "prettyPrint": true
       }
     }
