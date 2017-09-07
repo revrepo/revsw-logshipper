@@ -27,7 +27,8 @@ var config = require('config'),
   logger = require('revsw-logger')(config.log),
   utils = require('../../lib/utilities');
 
-var DomainLogConnection = mongoose.createConnection(config.get('logshipper_mongo.connect_string'));
+var DomainLogConnection = mongoose.createConnection(
+  config.get('logshipper_mongo.connect_string'));
 
 function DomainLog(mongoose, connection, options) {
   this.options = options;
@@ -36,8 +37,7 @@ function DomainLog(mongoose, connection, options) {
 
   this.DomainLogSchema = new this.Schema({});
 
-  this.DomainLogSchema.index({unixtime: 1});
-  this.DomainLogSchema.index({domain: 1});
+  this.DomainLogSchema.index({ unixtime: 1, domain: 1 });
   this.model = connection.model('DomainLog', this.DomainLogSchema, 'DomainsLog');
 }
 
@@ -56,13 +56,13 @@ DomainLog.prototype = {
       if (job.domain_aliases) {
         var domainNames = job.domain_aliases.slice();
         domainNames.push(job.domain_name);
-        query.domain = {$in: domainNames};
+        query.domain = { $in: domainNames };
       }
 
       if (job.domain_wildcard_alias) {
         query.$or = [
-          {domain: query.domain},
-          {domain: {$regex: job.domain_wildcard_alias.substring(1)}}
+          { domain: query.domain },
+          { domain: { $regex: job.domain_wildcard_alias.substring(1) } }
         ];
 
         delete query.domain;
@@ -74,7 +74,7 @@ DomainLog.prototype = {
     // logger.debug('DomainLog.listByJobs, $where', conditionsArray);
     this.model.find({
       $or: conditionsArray
-    }, {__v: 0})
+    }, { __v: 0 })
       .sort({
         unixtime: 1
       })
@@ -87,7 +87,7 @@ DomainLog.prototype = {
   },
 
   clean: function (callback) {
-    var threshold = {$lte: ( Date.now() / 1000 - config.logs_max_age_hr * 3600/*sec*/ )};
+    var threshold = { $lte: (Date.now() / 1000 - config.logs_max_age_hr * 3600/*sec*/) };
     this.model.remove({
       unixtime: threshold
     }, function (err, data) {
@@ -97,28 +97,30 @@ DomainLog.prototype = {
 
   cleanByJobs: function (jobs, callback) {
     if (!jobs || !jobs.length) {
-      callback(null, {n: 0});
+      callback(null, { n: 0 });
     } else {
 
       var conditionsArray = jobs.map(function (job) {
         var query = {
           domain: job.domain_name,
-          unixtime: {$lte: job.span.to}
+          unixtime: { $lte: job.span.to }
         };
 
         if (job.domain_aliases) {
           var domainNames = job.domain_aliases.slice();
           domainNames.push(job.domain_name);
-          query.domain = {$in: domainNames};
-          query.unixtime = {$lte: job.span.to};
+          query.domain = { $in: domainNames };
+          query.unixtime = { $lte: job.span.to };
         }
 
         if (job.domain_wildcard_alias) {
           query.$or = [
-            {domain: query.domain, unixtime: {$lte: job.span.to}},
-            {domain: {
-              $regex: job.domain_wildcard_alias.substring(1)},
-              unixtime: {$lte: job.span.to}
+            { domain: query.domain, unixtime: { $lte: job.span.to } },
+            {
+              domain: {
+                $regex: job.domain_wildcard_alias.substring(1)
+              },
+              unixtime: { $lte: job.span.to }
             }
           ];
 
@@ -129,7 +131,7 @@ DomainLog.prototype = {
       });
 
       logger.debug('DomainLog.cleanByJobs, $where', conditionsArray);
-      this.model.remove({$or: conditionsArray}, function (err, data) {
+      this.model.remove({ $or: conditionsArray }, function (err, data) {
         console.log(err);
         callback(err, data.result);
       });

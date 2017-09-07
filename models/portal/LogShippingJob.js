@@ -35,22 +35,22 @@ function LogShippingJob(mongoose, connection, options) {
 
   this.LogShippingJobSchema = new this.Schema({
     'job_name': String,
-    'operational_mode': {type: String, default: 'stop'},
+    'operational_mode': { type: String, default: 'stop' },
     'account_id': String,
     'created_by': String,
-    'created_at': {type: Date, default: Date.now},
-    'source_type': {type: String, default: 'domain'},
+    'created_at': { type: Date, default: Date.now },
+    'source_type': { type: String, default: 'domain' },
     'source_id': String,
-    'destination_type': {type: String, default: 's3'},
-    'destination_host': {type: String, default: ''},
-    'destination_port': {type: String, default: ''},
-    'destination_key': {type: String, default: ''},
-    'destination_username': {type: String, default: ''},
-    'destination_password': {type: String, default: ''},
-    'notification_email': {type: String, default: ''},
-    'comment': {type: String, default: ''},
+    'destination_type': { type: String, default: 's3' },
+    'destination_host': { type: String, default: '' },
+    'destination_port': { type: String, default: '' },
+    'destination_key': { type: String, default: '' },
+    'destination_username': { type: String, default: '' },
+    'destination_password': { type: String, default: '' },
+    'notification_email': { type: String, default: '' },
+    'comment': { type: String, default: '' },
     'updated_by': String,
-    'updated_at': {type: Date, default: Date.now}
+    'updated_at': { type: Date, default: Date.now }
   });
 
   this.model = connection.model('LogShippingJob', this.LogShippingJobSchema, 'LogShippingJob');
@@ -61,15 +61,46 @@ mongoose.set('debug', config.get('mongoose_debug_logging'));
 
 LogShippingJob.prototype = {
   listShippingJobs: function (callback) {
-    this.model.find(
-      {
+
+    // Get ids from config
+    var account_ids = config.get('active_account_ids');
+    var mongo_ids = [];
+    if (account_ids && account_ids.length > 0) {
+      // Convert ids to mongoose id objects and push to array
+      account_ids.forEach(function (id) {
+        mongo_ids.push(new mongoose.Types.ObjectId(id));
+      });
+    }
+    var options = {};
+    // if active_accounts_ids is not empty query with id filter
+    if (mongo_ids.length > 0) {
+      options = {
         operational_mode: {
-          $in: ['active', 'pause']
+          $in: [
+            'active',
+            'pause']
+        },
+        destination_host: {
+          $ne: ''
+        },
+        account_id: {
+          $in: mongo_ids
+        }
+      };
+    } else {
+      options = {
+        operational_mode: {
+          $in: [
+            'active',
+            'pause']
         },
         destination_host: {
           $ne: ''
         }
-      }, function (err, jobs) {
+      };
+    }
+
+    this.model.find(options, function (err, jobs) {        
         var results = utils.clone(jobs).map(function (r) {
           delete r.__v;
           return r;

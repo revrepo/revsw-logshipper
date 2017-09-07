@@ -22,7 +22,7 @@
     "connect_string": "mongodb://TESTSJC20-CMDB01.REVSW.NET:27017/revportal?replicaSet=CMDB-rs0"
   },
   "logshipper_mongo": {
-    "connect_string": "mongodb://TESTSJC20-LS01.REVSW.NET:27017/logshipper"
+    "connect_string": "127.0.0.1:27017/logshipper"
   },
   "mongoose_debug_logging": false,
 
@@ -73,5 +73,7 @@
   "notify_developers_by_email_about_uncaught_exceptions": "",
 
   "support_email" : "support@revapm.com",
-  "support_name" : "RevAPM Support Team"
+  "support_name" : "RevAPM Support Team",
+
+  "active_account_ids": []
 }
