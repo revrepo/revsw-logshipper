@@ -75,9 +75,5 @@
   "support_email" : "support@revapm.com",
   "support_name" : "RevAPM Support Team",
 
-<<<<<<< HEAD
   "active_account_ids": []
-=======
-  "active_account_ids": [] // if not empty only jobs from these accounts will be proccessed
->>>>>>> e18edd595273401154638edf18dee90df166134e
 }
