@@ -28,7 +28,8 @@ var config = require('config'),
   utils = require('../../lib/utilities');
 
 var DomainLogConnection = mongoose.createConnection(
-  config.get('logshipper_mongo.connect_string'));
+  config.get('logshipper_mongo.connect_string')
+  );
 
 function DomainLog(mongoose, connection, options) {
   this.options = options;
@@ -38,6 +39,8 @@ function DomainLog(mongoose, connection, options) {
   this.DomainLogSchema = new this.Schema({});
 
   this.DomainLogSchema.index({ unixtime: 1, domain: 1 });
+  this.DomainLogSchema.index({ unixtime: 1 });
+  this.DomainLogSchema.index({ domain: 1 });
   this.model = connection.model('DomainLog', this.DomainLogSchema, 'DomainsLog');
 }
 
