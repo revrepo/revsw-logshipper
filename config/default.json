@@ -75,5 +75,6 @@
   "support_email" : "support@revapm.com",
   "support_name" : "RevAPM Support Team",
 
-  "active_account_ids": []
+  "active_account_ids": [],
+  "suppressed_account_ids": []
 }
