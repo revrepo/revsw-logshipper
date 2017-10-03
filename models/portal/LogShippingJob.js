@@ -26,7 +26,8 @@ var config = require('config'),
   logger = require('revsw-logger')(config.log),
   utils = require('../../lib/utilities');
 
-var LogShippingJobConnection = mongoose.createConnection(config.get('portal_mongo.connect_string'));
+var LogShippingJobConnection = mongoose.createConnection(
+  config.get('portal_mongo.connect_string'));
 
 function LogShippingJob(mongoose, connection, options) {
   this.options = options;
@@ -64,16 +65,11 @@ LogShippingJob.prototype = {
 
     // Get ids from config
     var account_ids = config.get('active_account_ids');
-    var mongo_ids = [];
-    if (account_ids && account_ids.length > 0) {
-      // Convert ids to mongoose id objects and push to array
-      account_ids.forEach(function (id) {
-        mongo_ids.push(new mongoose.Types.ObjectId(id));
-      });
-    }
+    var supp_account_ids = config.get('suppressed_account_ids');
     var options = {};
-    // if active_accounts_ids is not empty query with id filter
-    if (mongo_ids.length > 0) {
+
+    // query with account ids filters if needed
+    if (account_ids && account_ids.length > 0) {
       options = {
         operational_mode: {
           $in: [
@@ -84,7 +80,8 @@ LogShippingJob.prototype = {
           $ne: ''
         },
         account_id: {
-          $in: mongo_ids
+          $in: account_ids,
+          $ne: supp_account_ids.length > 0 ? supp_account_ids : ''
         }
       };
     } else {
@@ -96,17 +93,20 @@ LogShippingJob.prototype = {
         },
         destination_host: {
           $ne: ''
+        },
+        account_id: {
+          $ne: supp_account_ids.length > 0 ? supp_account_ids : ''
         }
       };
     }
-
-    this.model.find(options, function (err, jobs) {        
-        var results = utils.clone(jobs).map(function (r) {
-          delete r.__v;
-          return r;
-        });
-        callback(err, results);
+    this.model.find(options, function (err, jobs) {
+      var results = utils.clone(jobs).map(function (r) {
+        console.log('Id: ' + r.account_id + ', Created by: ' + r.created_by);
+        delete r.__v;
+        return r;
       });
+      callback(err, results);
+    });
   },
 
   pauseJobs: function (jobIds, callback) {
