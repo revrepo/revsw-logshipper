@@ -65,8 +65,10 @@
   "notify_admin_by_email_on_logshipper_job_failures": "",
   "notify_developers_by_email_about_bad_implementation": "",
   "notify_developers_by_email_about_uncaught_exceptions": "",
-  "support_email": "support@revapm.com",
-  "support_name": "RevAPM Support Team",
+
+  "support_email" : "support@revapm.com",
+  "support_name" : "RevAPM Support Team",
+
   "active_account_ids": [],
   "suppressed_account_ids": []
 }
