@@ -27,7 +27,8 @@ var config = require('config'),
   logger = require('revsw-logger')(config.log),
   utils = require('../../lib/utilities');
 
-var LogShipperJobConnection = mongoose.createConnection(config.get('logshipper_mongo.connect_string'));
+var LogShipperJobConnection = mongoose.createConnection(
+  config.get('logshipper_mongo.connect_string'));
 
 function LogShipperJob(mongoose, connection, options) {
   this.options = options;
@@ -35,8 +36,8 @@ function LogShipperJob(mongoose, connection, options) {
   this.ObjectId = this.Schema.ObjectId;
 
   this.LogShipperJobSchema = new this.Schema({
-    'job_id': {type: String, required: true},
-    'domain_name': {type: String, lowercase: true}, // TODO: should be source_id and source_type
+    'job_id': { type: String, required: true },
+    'domain_name': { type: String, lowercase: true }, // TODO: should be source_id and source_type
     'status': Number,
     'shipper_type': Number,
     'span': {},
@@ -49,8 +50,8 @@ function LogShipperJob(mongoose, connection, options) {
   });
 
 
-  this.LogShipperJobSchema.index({job_id: 1});
-  this.LogShipperJobSchema.index({status: 1});
+  this.LogShipperJobSchema.index({ job_id: 1 });
+  this.LogShipperJobSchema.index({ status: 1 });
   this.model = connection.model('LogShipperJob', this.LogShipperJobSchema, 'Jobs');
 }
 
@@ -138,7 +139,7 @@ LogShipperJob.prototype = {
   },
 
   clean: function (callback) {
-    var threshold = {$lte: ( Date.now() / 1000 - config.jobs_max_age_hr * 3600/*sec*/ )};
+    var threshold = { $lte: (Date.now() / 1000 - config.jobs_max_age_hr * 3600/*sec*/) };
     this.model.remove({
       status: 3,
       'span.to': threshold
@@ -150,7 +151,7 @@ LogShipperJob.prototype = {
   listByStatus: function (status, callback) {
     this.model.find({
       status: status
-    }, {__v: 0}, function (err, data) {
+    }, { __v: 0 }, function (err, data) {
       var results = utils.clone(data);
       callback(err, results);
     });
@@ -158,7 +159,7 @@ LogShipperJob.prototype = {
 
   cleanByIds: function (ids, callback) {
     this.model.remove({
-      job_id: {$in: ids}
+      job_id: { $in: ids }
     }, function (err, data) {
       callback(err, data.result);
     });
