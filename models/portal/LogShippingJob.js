@@ -101,7 +101,6 @@ LogShippingJob.prototype = {
     }
     this.model.find(options, function (err, jobs) {
       var results = utils.clone(jobs).map(function (r) {
-        console.log('Id: ' + r.account_id + ', Created by: ' + r.created_by);
         delete r.__v;
         return r;
       });
