@@ -72,9 +72,9 @@ var LogShippingJobsDataProvider = {
     }
 
     if (destination === 's3') {
-      destinationHost = 'revsw-logshipper-qa-test';
-      destinationKey = 'AKIAIIGELF5U2CXREO5A';
-      password = '3uedu+gf6kYEY/ulj/GxJzXF9/ocnIMreKy+zk/R'; // S3 SecretKey
+      destinationHost = 'logshipper-qa-testing-bucket';
+      destinationKey = 'AKIAIHKS2KF4XKGKB6XQ';
+      password = 'HXmFLSSPNMLoESX0Lbfp1D3BniW6cf8vZz+LNysj'; // S3 SecretKey
     } else if (destination === 'ftp') {
       destinationHost = config.get('logshipper.ftp.host');
       destinationPort = '3021';
@@ -107,7 +107,7 @@ var LogShippingJobsDataProvider = {
       notification_email: '',
       comment: 'test commment for logshipping job',
       operational_mode: operationalMode
-    }
+    };
   },
 
   generateInvalidUpdateData: function(accountId, destination, source, sourceId, operationalMode, prefix) {
@@ -162,7 +162,7 @@ var LogShippingJobsDataProvider = {
       notification_email: '',
       comment: 'test commment for logshipping job',
       operational_mode: operationalMode
-    }
+    };
   }
 };
 
