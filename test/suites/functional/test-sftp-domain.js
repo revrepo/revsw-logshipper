@@ -43,7 +43,7 @@ describe('Functional check', function () {
   var sftpClient;
   // var sftpServerProcess;
   var proxyServers;
-  var jobMinutes = 0.5;
+  var jobMinutes = 2;
 
   before(function (done) {
     API.helpers
@@ -108,6 +108,7 @@ describe('Functional check', function () {
       .catch(done);
   });
 
+
   describe('Destination SFTP server, Source type Domain', function () {
 
     beforeEach(function (done) {
@@ -152,13 +153,42 @@ describe('Functional check', function () {
         './',
         function (err, files) {
           if (!err) {
-            files.length.should.be.equal(1);
+            files.length.should.be.above(0);
             done();
           } else {
             throw err;
           }
         });
     });
+
+    it('should clean up sftp server', function (done) {
+      setTimeout(function () {
+        sftpClient.list('./', function (err, files) {
+          var filesToUnlink = [];
+
+          files.forEach(function (file) {
+            if (file !== config.get('logshipper.sftp.test_file')) {
+              filesToUnlink.push(
+                sftpClient.delete(file, function (err, data) {
+                  if (err) {
+                    throw err;
+                  }
+                })
+              );
+            }
+          });
+
+          Promise.all(filesToUnlink)
+            .then(function () {
+              done();
+            })
+            .catch(function () {
+              done();
+            });
+        });
+      }, 1 * 1000);
+    });
+
 
     it('should download test file from sftp server', function (done) {
       sftpClient.download(
