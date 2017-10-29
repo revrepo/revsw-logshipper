@@ -72,9 +72,9 @@ var LogShippingJobsDataProvider = {
     }
 
     if (destination === 's3') {
-      destinationHost = 'logshipper-qa-testing-bucket';
-      destinationKey = 'AKIAIHKS2KF4XKGKB6XQ';
-      password = 'HXmFLSSPNMLoESX0Lbfp1D3BniW6cf8vZz+LNysj'; // S3 SecretKey
+      destinationHost = 'logshipper-test-bucket';
+      destinationKey = 'AKIAILBHZGM6EDTD2JYQ'; // separate AWS account for QA: eng@nuubit.com
+      password = '4zo2n2XE0wc7cNFQaaf6ErL2ZjzUpM/9qDFduKkb'; // S3 SecretKey
     } else if (destination === 'ftp') {
       destinationHost = config.get('logshipper.ftp.host');
       destinationPort = '3021';
