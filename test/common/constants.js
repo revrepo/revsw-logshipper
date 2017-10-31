@@ -15,5 +15,27 @@ module.exports = {
         USER: 'Normal User'
       }
     }
-  }
+  },
+  JOB_EXPECTED_FIELDS: [
+    'host',
+    '@timestamp',
+    'unixtime',
+    'domain',
+    'ipport',
+    'response',
+    'request',
+    's_bytes',
+    'r_bytes',
+    'method',
+    'conn_status',
+    'KA',
+    'FBT_mu',
+    'referer',
+    'cache',
+    'agent',
+    'cont_type',
+    'quic',
+    'http2',
+    'clientip'
+  ]
 };

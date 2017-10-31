@@ -25,7 +25,7 @@ var config = require('config');
 var API = require('./../../common/api');
 var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs');
 var utils = require('./../../common/utils');
-
+var Constants = require('./../../common/constants');
 var ElasticSearchClient = require('./../../common/elasticClient');
 
 describe('Functional check', function () {
@@ -201,6 +201,8 @@ describe('Functional check', function () {
       }, 120 * 1000);
     });
 
+    var hitJSON;
+
     it('should complete logshipping job and send logs to elastic in ' + jobMinutes +
       ' minutes', function (done) {
       setTimeout(function () {
@@ -209,13 +211,23 @@ describe('Functional check', function () {
           firstLsJ.destination_key,
           function (err, hits) {
             if (!err) {
-              hits.length.should.be.above(0);
+              hits.length.should.be.above(0);              
+              hitJSON = hits[0];
               done();
             } else {
               throw err;
             }
           });
       }, jobMinutes * 60 * 1000);
+    });
+
+    it('should only contain expected fields in a log shipping JSON object', function (done) {
+      for (var field in hitJSON._source) {
+        if (hitJSON._source.hasOwnProperty(field)) {
+          Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.not.equal(-1);
+        }
+      }
+      done();
     });
 
     it('should stop logshipping job for elastic', function (done) {
