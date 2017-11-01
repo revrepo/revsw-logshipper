@@ -37,5 +37,13 @@ module.exports = {
     'quic',
     'http2',
     'clientip'
+  ],
+  S3_JSON_EXPECTED_FIELDS: [
+    'Key',
+    'LastModified',
+    'ETag',
+    'Size',
+    'StorageClass',
+    'Owner'
   ]
 };

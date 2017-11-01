@@ -25,7 +25,7 @@ var config = require('config');
 var API = require('./../../common/api');
 var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs');
 var utils = require('./../../common/utils');
-
+var Constants = require('./../../common/constants');
 var S3Client = require('./../../common/s3Client');
 
 describe('Functional check', function () {
@@ -207,7 +207,7 @@ describe('Functional check', function () {
           });
       }, 120 * 1000);
     });
-
+    var s3Files;
     it('should complete logshipping job and send logs to s3 bucket in ' + jobMinutes +
       ' minutes', function (done) {
       setTimeout(function () {
@@ -215,13 +215,24 @@ describe('Functional check', function () {
           firstLsJ.destination_host,
           function (err, files) {
             if (!err) {
-              files.length.should.be.above(0);
+              s3Files = files;
+              files.length.should.be.above(0);              
               done();
             } else {
               throw err;
             }
           });
       }, jobMinutes * 60 * 1000);
+    });
+
+    it('should contain all expected fields in log shipping JSON object', function (done) {
+      var s3JSON = s3Files[0];
+      for (var field in s3JSON) {
+        if (s3JSON.hasOwnProperty(field)) {
+          Constants.S3_JSON_EXPECTED_FIELDS.indexOf(field).should.be.not.equal(-1);
+        }
+      }
+      done();
     });
 
     it('should stop logshipping job for s3 bucket', function (done) {
