@@ -25,8 +25,9 @@ var config = require('config');
 var API = require('./../../common/api');
 var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs');
 var utils = require('./../../common/utils');
-
+var Constants = require('./../../common/constants');
 var S3Client = require('./../../common/s3Client');
+var decompress = require('decompress');
 
 describe('Functional check', function () {
 
@@ -205,23 +206,60 @@ describe('Functional check', function () {
           .catch(function (error) {
             return Promise.reject(error);
           });
-      }, 120 * 1000);
+      }, 120 * 500);
     });
-
+    var s3Files;
     it('should complete logshipping job and send logs to s3 bucket in ' + jobMinutes +
       ' minutes', function (done) {
-      setTimeout(function () {
-        s3Client.list(
-          firstLsJ.destination_host,
-          function (err, files) {
-            if (!err) {
-              files.length.should.be.above(0);
-              done();
-            } else {
-              throw err;
-            }
-          });
-      }, jobMinutes * 60 * 1000);
+        setTimeout(function () {
+          s3Client.list(
+            firstLsJ.destination_host,
+            function (err, files) {
+              if (!err) {
+                s3Files = files;
+                files.length.should.be.above(0);
+                done();
+              } else {
+                throw err;
+              }
+            });
+        }, jobMinutes * 60 * 1000);
+      });
+
+    String.prototype.replaceAll = function (search, replacement) {
+      var target = this;
+      return target.replace(new RegExp(search, 'g'), replacement);
+    };
+
+    it('should contain all expected fields in log shipping JSON object', function (done) {
+      s3Files.forEach(function (file) {
+        s3Client.download(file.Key, firstLsJ.destination_host, function (err, data) {
+          if (err) {
+            console.log(err);
+          } else {
+            decompress(data.Body).then(function (files) {
+              files.forEach(function (file) {
+                // fix json format...
+                var logJSON = file.data.toString().replaceAll('%{referer}', '');
+                logJSON = logJSON.replaceAll('}', '},');
+                logJSON = logJSON.substr(0, logJSON.length - 2);
+                logJSON = '[' + logJSON + ']';
+                logJSON = JSON.parse(logJSON);
+                logJSON.forEach(function (js) {
+                  for (var field in js) {
+                    if (js.hasOwnProperty(field) && field !== '_id') {
+                      Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.not.equal(-1);
+                    } else if(field === '_id') {
+                      Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.equal(-1);
+                    }
+                  }
+                });
+              });              
+            });
+          }
+        });
+      });
+      done();
     });
 
     it('should stop logshipping job for s3 bucket', function (done) {
