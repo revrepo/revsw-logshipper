@@ -206,7 +206,7 @@ describe('Functional check', function () {
           .catch(function (error) {
             return Promise.reject(error);
           });
-      }, 120 * 500);
+      }, 120 * 1000);
     });
     var s3Files;
     it('should complete logshipping job and send logs to s3 bucket in ' + jobMinutes +
