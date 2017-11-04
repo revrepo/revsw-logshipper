@@ -58,7 +58,7 @@ describe('Negative check', function () {
         return API.helpers.domainConfigs.createOne(account.id, 'LS-TEST');
       })
       .then(function (domainConfig) {
-        firstDc = domainConfig;
+        firstDc = domainConfig;        
       })
       .then(function () {
         return API.helpers.logShippingJobs.createOne(account.id);

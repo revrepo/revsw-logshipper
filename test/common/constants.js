@@ -37,5 +37,7 @@ module.exports = {
     'quic',
     'http2',
     'clientip'
-  ]
+  ],
+  DOMAIN_STATUS_POLLING_TIMEOUT: 180000,
+  DOMAIN_STATUS_POLLING_INTERVAL: 3000
 };

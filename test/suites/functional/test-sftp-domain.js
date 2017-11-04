@@ -26,9 +26,9 @@ var config = require('config');
 var API = require('./../../common/api');
 var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs');
 var utils = require('./../../common/utils');
-
+var DomainHelpers = require('./../../common/helpers/domainConfigs');
 var SFtpClient = require('./../../common/sftpClient');
-
+var Constants = require('./../../common/constants');
 describe('Functional check', function () {
 
   // Changing default mocha's timeout (Default is 2 seconds).
@@ -65,32 +65,45 @@ describe('Functional check', function () {
       })
       .then(function (domainConfig) {
         firstDc = domainConfig;
-      })
-      .then(function () {
-        return API.helpers.logShippingJobs.createOne(account.id);
-      })
-      .then(function (logShippingJob) {
-        firstLsJ = logShippingJob;
-      })
-      .then(function () {
-        var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
-          account.id,
-          'sftp',
-          'domain',
-          firstDc.id,
-          'active'
-        );
-        return API.resources.logShippingJobs
-          .update(firstLsJ.id, firstLsJConfig)
-          .expect(200)
-          .then(function () {
-            firstLsJConfig.id = firstLsJ.id;
-            firstLsJ = firstLsJConfig;
-            done();
-          })
-          .catch(done);
-      })
-      .catch(done);
+        var times = Constants.DOMAIN_STATUS_POLLING_TIMEOUT;
+        var interval = Constants.DOMAIN_STATUS_POLLING_INTERVAL;
+        var domainPolling = function () {
+          if (times < 0) {
+            done(new Error('Domain polling timeout'));
+          }
+          times -= interval;
+          DomainHelpers.checkStatus(firstDc.id).then(function (res) {
+            if (res.staging_status === 'Published' && res.global_status === 'Published') {
+              return API.helpers.logShippingJobs.createOne(account.id)
+                .then(function (logShippingJob) {
+                  firstLsJ = logShippingJob;
+                })
+                .then(function () {
+                  var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
+                    account.id,
+                    'sftp',
+                    'domain',
+                    firstDc.id,
+                    'active'
+                  );
+                  return API.resources.logShippingJobs
+                    .update(firstLsJ.id, firstLsJConfig)
+                    .expect(200)
+                    .then(function () {
+                      firstLsJConfig.id = firstLsJ.id;
+                      firstLsJ = firstLsJConfig;
+                      done();
+                    })
+                    .catch(done);
+                })
+                .catch(done);
+            } else {
+              setTimeout(domainPolling, interval);
+            }
+          });
+        };
+        domainPolling();
+      });
   });
 
   after(function (done) {
@@ -269,13 +282,13 @@ describe('Functional check', function () {
 
     it('should complete logshipping job and send logs to sftp server in ' + jobMinutes +
       ' minutes', function (done) {
-      setTimeout(function () {
-        sftpClient.list('./', function (err, files) {
-          files.length.should.be.above(1);
-          done();
-        });
-      }, jobMinutes * 60 * 1000);
-    });
+        setTimeout(function () {
+          sftpClient.list('./', function (err, files) {
+            files.length.should.be.above(1);
+            done();
+          });
+        }, jobMinutes * 60 * 1000);
+      });
 
     it('should stop logshipping job for sftp server', function (done) {
       var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
