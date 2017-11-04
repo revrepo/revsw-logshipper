@@ -250,29 +250,34 @@ describe('Functional check', function () {
           if (err) {
             console.log(err);
           } else {
-            decompress(data.Body).then(function (files) {
-              files.forEach(function (file) {
-                // fix json format...
-                var logJSON = file.data.toString().replaceAll('%{referer}', '');
-                logJSON = logJSON.replaceAll('}', '},');
-                logJSON = logJSON.substr(0, logJSON.length - 2);
-                logJSON = '[' + logJSON + ']';
-                logJSON = JSON.parse(logJSON);
-                logJSON.forEach(function (js) {
-                  for (var field in js) {
-                    if (js.hasOwnProperty(field) && field !== '_id') {
-                      Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.not.equal(-1);
-                    } else if (field === '_id') {
-                      Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.equal(-1);
+            new decompress({ mode: '755' })
+              .src(data.Body)
+              .dest('./../../common/uploads')
+              .use(decompress.zip({ strip: 1 }))
+              .run(function (err, files) {
+                files.forEach(function (file) {                  
+                  // fix json format...
+                  var logJSON = file.contents.toString().replaceAll('%{referer}', '');
+                  logJSON = logJSON.replaceAll('}', '},');
+                  logJSON = logJSON.substr(0, logJSON.length - 2);
+                  logJSON = '[' + logJSON + ']';    
+                  logJSON = JSON.parse(logJSON);
+                  logJSON.forEach(function (js) {
+                    for (var field in js) {
+                      if (js.hasOwnProperty(field) && field !== '_id') {
+                        Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.not.equal(-1);                        
+                      } else if (field === '_id') {
+                        Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.equal(-1);
+                      }
                     }
-                  }
+                    
+                  });
                 });
               });
-            });
           }
         });
-      });
-      done();
+      });     
+      done(); 
     });
 
     it('should stop logshipping job for s3 bucket', function (done) {
