@@ -28,7 +28,7 @@ var DomainConfigDP = require('./../../common/providers/data/domainConfigs');
 var utils = require('./../../common/utils');
 var DomainHelpers = require('./../../common/helpers/domainConfigs');
 var S3Client = require('./../../common/s3Client');
-
+var Constants = require('./../../common/constants');
 describe('Functional check', function () {
 
   // Changing default mocha's timeout (Default is 2 seconds).
@@ -70,8 +70,8 @@ describe('Functional check', function () {
           .expect(200)
           .then(function (response) { // This is needed for the next tests
             firstDcFull = response.body;
-            var times = 3 * 60 * 1000;
-            var interval = 3000;
+            var times = Constants.DOMAIN_STATUS_POLLING_TIMEOUT;
+            var interval = Constants.DOMAIN_STATUS_POLLING_INTERVAL;
             var domainPolling = function () {              
               if (times < 0) {
                 done(new Error('Domain polling timeout'));
