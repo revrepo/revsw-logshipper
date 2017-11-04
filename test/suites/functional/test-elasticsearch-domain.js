@@ -27,6 +27,7 @@ var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs')
 var utils = require('./../../common/utils');
 var Constants = require('./../../common/constants');
 var ElasticSearchClient = require('./../../common/elasticClient');
+var DomainHelpers = require('./../../common/helpers/domainConfigs');
 
 describe('Functional check', function () {
 
@@ -64,32 +65,45 @@ describe('Functional check', function () {
       })
       .then(function (domainConfig) {
         firstDc = domainConfig;
+        var times = 3 * 60 * 1000;
+        var interval = 3000;
+        var domainPolling = function () {
+          if (times < 0) {
+            done(new Error('Domain polling timeout'));
+          }
+          times -= interval;
+          DomainHelpers.checkStatus(firstDc.id).then(function (res) {
+            if(res.staging_status === 'Published' && res.global_status === 'Published') {
+              return API.helpers.logShippingJobs.createOne(account.id)
+              .then(function (logShippingJob) {
+                firstLsJ = logShippingJob;
+              })
+              .then(function () {
+                var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
+                  account.id,
+                  'elasticsearch',
+                  'domain',
+                  firstDc.id,
+                  'active'
+                );
+                return API.resources.logShippingJobs
+                  .update(firstLsJ.id, firstLsJConfig)
+                  .expect(200)
+                  .then(function (res) {
+                    firstLsJConfig.id = firstLsJ.id;
+                    firstLsJ = firstLsJConfig;
+                    done();
+                  })
+                  .catch(done);
+              })
+              .catch(done);
+            } else {
+              setTimeout(domainPolling, interval);
+            }
+          });
+        };
+        domainPolling();
       })
-      .then(function () {
-        return API.helpers.logShippingJobs.createOne(account.id);
-      })
-      .then(function (logShippingJob) {
-        firstLsJ = logShippingJob;
-      })
-      .then(function () {
-        var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
-          account.id,
-          'elasticsearch',
-          'domain',
-          firstDc.id,
-          'active'
-        );
-        return API.resources.logShippingJobs
-          .update(firstLsJ.id, firstLsJConfig)
-          .expect(200)
-          .then(function (res) {
-            firstLsJConfig.id = firstLsJ.id;
-            firstLsJ = firstLsJConfig;
-            done();
-          })
-          .catch(done);
-      })
-      .catch(done);
   });
 
   after(function (done) {
@@ -205,21 +219,21 @@ describe('Functional check', function () {
 
     it('should complete logshipping job and send logs to elastic in ' + jobMinutes +
       ' minutes', function (done) {
-      setTimeout(function () {
-        elasticClient.list(
-          'logshipper',
-          firstLsJ.destination_key,
-          function (err, hits) {
-            if (!err) {
-              hits.length.should.be.above(0);              
-              hitJSON = hits[0];
-              done();
-            } else {
-              throw err;
-            }
-          });
-      }, jobMinutes * 60 * 1000);
-    });
+        setTimeout(function () {
+          elasticClient.list(
+            'logshipper',
+            firstLsJ.destination_key,
+            function (err, hits) {
+              if (!err) {
+                hits.length.should.be.above(0);
+                hitJSON = hits[0];
+                done();
+              } else {
+                throw err;
+              }
+            });
+        }, jobMinutes * 60 * 1000);
+      });
 
     it('should only contain expected fields in a log shipping JSON object', function (done) {
       for (var field in hitJSON._source) {

@@ -26,7 +26,7 @@ var config = require('config');
 var API = require('./../../common/api');
 var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs');
 var utils = require('./../../common/utils');
-
+var DomainHelpers = require('./../../common/helpers/domainConfigs');
 var FtpClient = require('./../../common/ftpClient');
 
 describe('Functional check', function () {
@@ -48,10 +48,10 @@ describe('Functional check', function () {
   before(function (done) {
     API.helpers
       .authenticateUser(revAdmin)
-      .then(function() {
+      .then(function () {
         return utils.getProxyServers();
       })
-      .then(function(servers) {
+      .then(function (servers) {
         proxyServers = servers;
       })
       .then(function () {
@@ -60,37 +60,50 @@ describe('Functional check', function () {
       .then(function (newAccount) {
         account = newAccount;
       })
-      .then(function() {
+      .then(function () {
         return API.helpers.domainConfigs.createOne(account.id);
       })
       .then(function (domainConfig) {
         firstDc = domainConfig;
-      })
-      .then(function () {
-        return API.helpers.logShippingJobs.createOne(account.id);
-      })
-      .then(function (logShippingJob) {
-        firstLsJ = logShippingJob;
-      })
-      .then(function () {
-        var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
-          account.id,
-          'ftp',
-          'domain',
-          firstDc.id,
-          'active'
-        );
-        return API.resources.logShippingJobs
-          .update(firstLsJ.id, firstLsJConfig)
-          .expect(200)
-          .then(function() {
-            firstLsJConfig.id = firstLsJ.id;
-            firstLsJ = firstLsJConfig;
-            done();
-          })
-          .catch(done);
-      })
-      .catch(done);
+        var times = 3 * 60 * 1000;
+        var interval = 3000;
+        var domainPolling = function () {
+          if (times < 0) {
+            done(new Error('Domain polling timeout'));
+          }
+          times -= interval;
+          DomainHelpers.checkStatus(firstDc.id).then(function (res) {
+            if (res.staging_status === 'Published' && res.global_status === 'Published') {
+              return API.helpers.logShippingJobs.createOne(account.id)
+                .then(function (logShippingJob) {
+                  firstLsJ = logShippingJob;
+                })
+                .then(function () {
+                  var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
+                    account.id,
+                    'ftp',
+                    'domain',
+                    firstDc.id,
+                    'active'
+                  );
+                  return API.resources.logShippingJobs
+                    .update(firstLsJ.id, firstLsJConfig)
+                    .expect(200)
+                    .then(function () {
+                      firstLsJConfig.id = firstLsJ.id;
+                      firstLsJ = firstLsJConfig;
+                      done();
+                    })
+                    .catch(done);
+                })
+                .catch(done);
+            } else {
+              setTimeout(domainPolling, interval);
+            }
+          });
+        };
+        domainPolling();
+      });
   });
 
   after(function (done) {
@@ -102,7 +115,7 @@ describe('Functional check', function () {
       .then(function () {
         return API.resources.logShippingJobs.deleteOne(firstLsJ.id);
       })
-      .then(function() {
+      .then(function () {
         return API.resources.accounts.deleteAllPrerequisites(done);
       })
       .catch(done);
@@ -129,14 +142,14 @@ describe('Functional check', function () {
     });
 
     it('should ping and get response from ftp server', function (done) {
-      setTimeout(function() {
+      setTimeout(function () {
         ftpClient = new FtpClient();
         ftpClient.connect(
           'localhost',
           firstLsJ.destination_port,
           firstLsJ.username,
           firstLsJ.password,
-          function(err) {
+          function (err) {
             if (!err) {
               done();
             } else {
@@ -147,7 +160,7 @@ describe('Functional check', function () {
     });
 
     it('should get list from ftp server', function (done) {
-      ftpClient.list('/', function(err, files) {
+      ftpClient.list('/', function (err, files) {
         files.length.should.be.above(0);
         done();
       });
@@ -162,8 +175,8 @@ describe('Functional check', function () {
           '../../common',
           config.get('logshipper.ftp.download')
         ),
-        function() {
-          setTimeout(function() {
+        function () {
+          setTimeout(function () {
             fs.exists(
               path.join(
                 __dirname,
@@ -171,7 +184,7 @@ describe('Functional check', function () {
                 config.get('logshipper.ftp.download'),
                 config.get('logshipper.ftp.test_file')
               ),
-              function(exists) {
+              function (exists) {
                 if (exists) {
                   fs.unlink(
                     path.join(
@@ -180,7 +193,7 @@ describe('Functional check', function () {
                       config.get('logshipper.ftp.download'),
                       config.get('logshipper.ftp.test_file')
                     ),
-                    function() {
+                    function () {
                       done();
                     }
                   );
@@ -193,38 +206,38 @@ describe('Functional check', function () {
     });
 
     it('should send requests to recently created domain config to generate logs in 2 minutes', function (done) {
-      setTimeout(function() {
+      setTimeout(function () {
         var productionProxyServers = proxyServers
-          .filter(function(server) {
+          .filter(function (server) {
             return server.environment === 'prod' && server.status === 'online';
           })
-          .map(function(server) {
+          .map(function (server) {
             return server.server_name.toLowerCase();
           });
 
         var stagingProxyServers = proxyServers
-          .filter(function(server) {
+          .filter(function (server) {
             return server.environment === 'staging' && server.status === 'online';
           })
-          .map(function(server) {
+          .map(function (server) {
             return server.server_name.toLowerCase();
           });
         var proxyRequests = [];
-        productionProxyServers.forEach(function(server) {
+        productionProxyServers.forEach(function (server) {
           proxyRequests.push(
             utils.sendProxyServerRequest(server, firstDc.domain_name)
           );
         });
-        stagingProxyServers.forEach(function(server) {
+        stagingProxyServers.forEach(function (server) {
           proxyRequests.push(
             utils.sendProxyServerRequest(server, firstDc.domain_name)
           );
         });
         return Promise.all(proxyRequests)
-          .then(function() {
+          .then(function () {
             done();
           })
-          .catch(function(error) {
+          .catch(function (error) {
             return Promise.reject(error);
           });
       }, 120 * 1000);
@@ -232,40 +245,40 @@ describe('Functional check', function () {
 
     it('should complete logshipping job and send logs to local ftp server in ' + jobMinutes +
       ' minutes', function (done) {
-      setTimeout(function() {
-        ftpClient.list('/', function(err, files) {
-          console.log(files);
-          files.length.should.be.above(1);
-          var filesToUnlink = [];
+        setTimeout(function () {
+          ftpClient.list('/', function (err, files) {
+            console.log(files);
+            files.length.should.be.above(1);
+            var filesToUnlink = [];
 
-          files.forEach(function(file) {
-            if (file.name !== config.get('logshipper.ftp.test_file')) {
-              filesToUnlink.push(
-                fs.unlink(
-                  path.join(
-                    __dirname,
-                    '../../common',
-                    config.get('logshipper.ftp.root'),
-                    file.name
-                  ),
-                  function () {
-                    console.log('Removed ' + file.name + ' from local ftp');
-                  }
-                )
-              );
-            }
-          });
-
-          Promise.all(filesToUnlink)
-            .then(function() {
-              done();
-            })
-            .catch(function() {
-              throw new Error('One of files could not be removed');
+            files.forEach(function (file) {
+              if (file.name !== config.get('logshipper.ftp.test_file')) {
+                filesToUnlink.push(
+                  fs.unlink(
+                    path.join(
+                      __dirname,
+                      '../../common',
+                      config.get('logshipper.ftp.root'),
+                      file.name
+                    ),
+                    function () {
+                      console.log('Removed ' + file.name + ' from local ftp');
+                    }
+                  )
+                );
+              }
             });
-        });
-      }, jobMinutes * 60 * 1000);
-    });
+
+            Promise.all(filesToUnlink)
+              .then(function () {
+                done();
+              })
+              .catch(function () {
+                throw new Error('One of files could not be removed');
+              });
+          });
+        }, jobMinutes * 60 * 1000);
+      });
 
     it('should stop logshipping job for ftp server', function (done) {
       var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
@@ -278,10 +291,10 @@ describe('Functional check', function () {
       API.resources.logShippingJobs
         .update(firstLsJ.id, firstLsJConfig)
         .expect(200)
-        .then(function() {
+        .then(function () {
           done();
         })
-        .catch(function(error) {
+        .catch(function (error) {
           throw error;
         });
     });
