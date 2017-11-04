@@ -28,7 +28,7 @@ var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs')
 var utils = require('./../../common/utils');
 var DomainHelpers = require('./../../common/helpers/domainConfigs');
 var SFtpClient = require('./../../common/sftpClient');
-
+var Constants = require('./../../common/constants');
 describe('Functional check', function () {
 
   // Changing default mocha's timeout (Default is 2 seconds).

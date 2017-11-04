@@ -28,7 +28,6 @@ var utils = require('./../../common/utils');
 var Constants = require('./../../common/constants');
 var ElasticSearchClient = require('./../../common/elasticClient');
 var DomainHelpers = require('./../../common/helpers/domainConfigs');
-
 describe('Functional check', function () {
 
   // Changing default mocha's timeout (Default is 2 seconds).

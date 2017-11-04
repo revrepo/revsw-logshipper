@@ -28,7 +28,7 @@ var DomainConfigDP = require('./../../common/providers/data/domainConfigs');
 var utils = require('./../../common/utils');
 var DomainHelpers = require('./../../common/helpers/domainConfigs');
 var S3Client = require('./../../common/s3Client');
-
+var Constants = require('./../../common/constants');
 describe('Functional check', function () {
 
   // Changing default mocha's timeout (Default is 2 seconds).
