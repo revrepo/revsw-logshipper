@@ -36,7 +36,14 @@ module.exports = {
     'cont_type',
     'quic',
     'http2',
-    'clientip'
+    'clientip',
+    'duration',
+    'upstream_time',
+    'ie_format_o',
+    'ie_format',
+    'ie_res',
+    'ie_res_o',
+    'ie_bytes_o'
   ],
   DOMAIN_STATUS_POLLING_TIMEOUT: 180000,
   DOMAIN_STATUS_POLLING_INTERVAL: 3000
