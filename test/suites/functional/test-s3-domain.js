@@ -25,9 +25,10 @@ var config = require('config');
 var API = require('./../../common/api');
 var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs');
 var utils = require('./../../common/utils');
-
+var Constants = require('./../../common/constants');
 var S3Client = require('./../../common/s3Client');
-
+var decompress = require('decompress');
+var DomainHelpers = require('./../../common/helpers/domainConfigs');
 describe('Functional check', function () {
 
   // Changing default mocha's timeout (Default is 2 seconds).
@@ -63,32 +64,45 @@ describe('Functional check', function () {
       })
       .then(function (domainConfig) {
         firstDc = domainConfig;
+        var times = Constants.DOMAIN_STATUS_POLLING_TIMEOUT;
+        var interval = Constants.DOMAIN_STATUS_POLLING_INTERVAL;
+        var domainPolling = function () {
+          if (times < 0) {
+            done(new Error('Domain polling timeout'));
+          }
+          times -= interval;
+          DomainHelpers.checkStatus(firstDc.id).then(function (res) {
+            if (res.staging_status === 'Published' && res.global_status === 'Published') {
+              return API.helpers.logShippingJobs.createOne(account.id)
+                .then(function (logShippingJob) {
+                  firstLsJ = logShippingJob;
+                })
+                .then(function () {
+                  var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
+                    account.id,
+                    's3',
+                    'domain',
+                    firstDc.id,
+                    'active'
+                  );
+                  return API.resources.logShippingJobs
+                    .update(firstLsJ.id, firstLsJConfig)
+                    .expect(200)
+                    .then(function () {
+                      firstLsJConfig.id = firstLsJ.id;
+                      firstLsJ = firstLsJConfig;
+                      done();
+                    })
+                    .catch(done);
+                })
+                .catch(done);
+            } else {
+              setTimeout(domainPolling, interval);
+            }
+          });
+        };
+        domainPolling();
       })
-      .then(function () {
-        return API.helpers.logShippingJobs.createOne(account.id);
-      })
-      .then(function (logShippingJob) {
-        firstLsJ = logShippingJob;
-      })
-      .then(function () {
-        var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
-          account.id,
-          's3',
-          'domain',
-          firstDc.id,
-          'active'
-        );
-        return API.resources.logShippingJobs
-          .update(firstLsJ.id, firstLsJConfig)
-          .expect(200)
-          .then(function () {
-            firstLsJConfig.id = firstLsJ.id;
-            firstLsJ = firstLsJConfig;
-            done();
-          })
-          .catch(done);
-      })
-      .catch(done);
   });
 
   after(function (done) {
@@ -207,21 +221,63 @@ describe('Functional check', function () {
           });
       }, 120 * 1000);
     });
-
+    var s3Files;
     it('should complete logshipping job and send logs to s3 bucket in ' + jobMinutes +
       ' minutes', function (done) {
-      setTimeout(function () {
-        s3Client.list(
-          firstLsJ.destination_host,
-          function (err, files) {
-            if (!err) {
-              files.length.should.be.above(0);
-              done();
-            } else {
-              throw err;
-            }
-          });
-      }, jobMinutes * 60 * 1000);
+        setTimeout(function () {
+          s3Client.list(
+            firstLsJ.destination_host,
+            function (err, files) {
+              if (!err) {
+                s3Files = files;
+                files.length.should.be.above(0);
+                done();
+              } else {
+                throw err;
+              }
+            });
+        }, jobMinutes * 60 * 1000);
+      });
+
+    String.prototype.replaceAll = function (search, replacement) {
+      var target = this;
+      return target.replace(new RegExp(search, 'g'), replacement);
+    };
+
+    it('should contain all expected fields in log shipping JSON object', function (done) {
+      s3Files.forEach(function (file) {
+        s3Client.download(file.Key, firstLsJ.destination_host, function (err, data) {
+          if (err) {
+            console.log(err);
+          } else {
+            new decompress({ mode: '755' })
+              .src(data.Body)
+              .dest('./../../common/uploads')
+              .use(decompress.zip({ strip: 1 }))
+              .run(function (err, files) {
+                files.forEach(function (file) {                  
+                  // fix json format...
+                  var logJSON = file.contents.toString().replaceAll('%{referer}', '');
+                  logJSON = logJSON.replaceAll('}', '},');
+                  logJSON = logJSON.substr(0, logJSON.length - 2);
+                  logJSON = '[' + logJSON + ']';    
+                  logJSON = JSON.parse(logJSON);
+                  logJSON.forEach(function (js) {
+                    for (var field in js) {
+                      if (js.hasOwnProperty(field) && field !== '_id') {
+                        Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.not.equal(-1);                        
+                      } else if (field === '_id') {
+                        Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.equal(-1);
+                      }
+                    }
+                    
+                  });
+                });
+              });
+          }
+        });
+      });     
+      done(); 
     });
 
     it('should stop logshipping job for s3 bucket', function (done) {

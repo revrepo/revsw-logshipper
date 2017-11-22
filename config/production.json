@@ -2,7 +2,7 @@
   "log": {
     "transports": {
       "Console": {
-        "level": "warn",
+        "level": "debug",
         "colorize": true,
         "prettyPrint": true,
         "humanReadableUnhandledException": true,
@@ -10,7 +10,7 @@
       },
       "File": {
         "filename": "./log/revsw-logshipper.log",
-        "level": "info",
+        "level": "debug",
         "prettyPrint": true
       }
     }

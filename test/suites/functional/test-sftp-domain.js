@@ -26,9 +26,9 @@ var config = require('config');
 var API = require('./../../common/api');
 var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs');
 var utils = require('./../../common/utils');
-
+var DomainHelpers = require('./../../common/helpers/domainConfigs');
 var SFtpClient = require('./../../common/sftpClient');
-
+var Constants = require('./../../common/constants');
 describe('Functional check', function () {
 
   // Changing default mocha's timeout (Default is 2 seconds).
@@ -43,7 +43,7 @@ describe('Functional check', function () {
   var sftpClient;
   // var sftpServerProcess;
   var proxyServers;
-  var jobMinutes = 1;
+  var jobMinutes = 2;
 
   before(function (done) {
     API.helpers
@@ -65,32 +65,45 @@ describe('Functional check', function () {
       })
       .then(function (domainConfig) {
         firstDc = domainConfig;
-      })
-      .then(function () {
-        return API.helpers.logShippingJobs.createOne(account.id);
-      })
-      .then(function (logShippingJob) {
-        firstLsJ = logShippingJob;
-      })
-      .then(function () {
-        var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
-          account.id,
-          'sftp',
-          'domain',
-          firstDc.id,
-          'active'
-        );
-        return API.resources.logShippingJobs
-          .update(firstLsJ.id, firstLsJConfig)
-          .expect(200)
-          .then(function () {
-            firstLsJConfig.id = firstLsJ.id;
-            firstLsJ = firstLsJConfig;
-            done();
-          })
-          .catch(done);
-      })
-      .catch(done);
+        var times = Constants.DOMAIN_STATUS_POLLING_TIMEOUT;
+        var interval = Constants.DOMAIN_STATUS_POLLING_INTERVAL;
+        var domainPolling = function () {
+          if (times < 0) {
+            done(new Error('Domain polling timeout'));
+          }
+          times -= interval;
+          DomainHelpers.checkStatus(firstDc.id).then(function (res) {
+            if (res.staging_status === 'Published' && res.global_status === 'Published') {
+              return API.helpers.logShippingJobs.createOne(account.id)
+                .then(function (logShippingJob) {
+                  firstLsJ = logShippingJob;
+                })
+                .then(function () {
+                  var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
+                    account.id,
+                    'sftp',
+                    'domain',
+                    firstDc.id,
+                    'active'
+                  );
+                  return API.resources.logShippingJobs
+                    .update(firstLsJ.id, firstLsJConfig)
+                    .expect(200)
+                    .then(function () {
+                      firstLsJConfig.id = firstLsJ.id;
+                      firstLsJ = firstLsJConfig;
+                      done();
+                    })
+                    .catch(done);
+                })
+                .catch(done);
+            } else {
+              setTimeout(domainPolling, interval);
+            }
+          });
+        };
+        domainPolling();
+      });
   });
 
   after(function (done) {
@@ -107,6 +120,7 @@ describe('Functional check', function () {
       })
       .catch(done);
   });
+
 
   describe('Destination SFTP server, Source type Domain', function () {
 
@@ -152,13 +166,42 @@ describe('Functional check', function () {
         './',
         function (err, files) {
           if (!err) {
-            files.length.should.be.equal(1);
+            files.length.should.be.above(0);
             done();
           } else {
             throw err;
           }
         });
     });
+
+    it('should clean up sftp server', function (done) {
+      setTimeout(function () {
+        sftpClient.list('./', function (err, files) {
+          var filesToUnlink = [];
+
+          files.forEach(function (file) {
+            if (file !== config.get('logshipper.sftp.test_file')) {
+              filesToUnlink.push(
+                sftpClient.delete(file, function (err, data) {
+                  if (err) {
+                    throw err;
+                  }
+                })
+              );
+            }
+          });
+
+          Promise.all(filesToUnlink)
+            .then(function () {
+              done();
+            })
+            .catch(function () {
+              done();
+            });
+        });
+      }, 1 * 1000);
+    });
+
 
     it('should download test file from sftp server', function (done) {
       sftpClient.download(
@@ -239,13 +282,13 @@ describe('Functional check', function () {
 
     it('should complete logshipping job and send logs to sftp server in ' + jobMinutes +
       ' minutes', function (done) {
-      setTimeout(function () {
-        sftpClient.list('./', function (err, files) {
-          files.length.should.be.above(1);
-          done();
-        });
-      }, jobMinutes * 60 * 1000);
-    });
+        setTimeout(function () {
+          sftpClient.list('./', function (err, files) {
+            files.length.should.be.above(1);
+            done();
+          });
+        }, jobMinutes * 60 * 1000);
+      });
 
     it('should stop logshipping job for sftp server', function (done) {
       var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
@@ -291,7 +334,7 @@ describe('Functional check', function () {
               done();
             });
         });
-      }, 5 * 1000);
+      }, 1 * 1000);
     });
 
     // xit('should stop local sftp server', function (done) {

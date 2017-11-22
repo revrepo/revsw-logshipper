@@ -72,19 +72,20 @@ var LogShippingJobsDataProvider = {
     }
 
     if (destination === 's3') {
-      destinationHost = 'revsw-logshipper-qa-test';
-      destinationKey = 'AKIAIIGELF5U2CXREO5A';
-      password = '3uedu+gf6kYEY/ulj/GxJzXF9/ocnIMreKy+zk/R'; // S3 SecretKey
+      destinationHost = 'logshipper-test-bucket';
+      destinationKey = 'AKIAILBHZGM6EDTD2JYQ'; // separate AWS account for QA: eng@nuubit.com
+      password = '4zo2n2XE0wc7cNFQaaf6ErL2ZjzUpM/9qDFduKkb'; // S3 SecretKey
     } else if (destination === 'ftp') {
       destinationHost = config.get('logshipper.ftp.host');
       destinationPort = '3021';
       username = 'logshipper';
       password = 'logshipper';
     } else if (destination === 'sftp') {
-      destinationHost = '185.46.10.249';
-      destinationPort = '22';
-      username = 'revsw';
-      password = 'password';
+      destinationHost = '192.168.4.75';   // TESTSJC20-WEBSITE01, separate SSHD process managed
+                                          // using /etc/init.d/ssh-sftp
+      destinationPort = '222';
+      username = 'sftp-test';
+      password = 'Revsw11b';
     } else if (destination === 'elasticsearch') {
       destinationHost = 'testsjc20-es01.revsw.net';
       destinationPort = '9200';
@@ -107,7 +108,7 @@ var LogShippingJobsDataProvider = {
       notification_email: '',
       comment: 'test commment for logshipping job',
       operational_mode: operationalMode
-    }
+    };
   },
 
   generateInvalidUpdateData: function(accountId, destination, source, sourceId, operationalMode, prefix) {
@@ -162,7 +163,7 @@ var LogShippingJobsDataProvider = {
       notification_email: '',
       comment: 'test commment for logshipping job',
       operational_mode: operationalMode
-    }
+    };
   }
 };
 

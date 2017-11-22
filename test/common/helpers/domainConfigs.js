@@ -19,6 +19,7 @@
 var DomainConfigsResource = require('./../resources/domainConfigs');
 var DomainConfigsDP = require('./../providers/data/domainConfigs');
 var APITestError = require('./../apiTestError');
+var API = require('./../api');
 
 // # Users Helper
 // Abstracts common functionality for the related resource.
@@ -28,13 +29,24 @@ module.exports = {
     var domainConfig = DomainConfigsDP.generateOne(accountId, prefix);
     return DomainConfigsResource
       .createOneAsPrerequisite(domainConfig)
-      .catch(function(error){
-        throw new APITestError('Creating Domain Config' ,
+      .catch(function (error) {
+        throw new APITestError('Creating Domain Config',
           error.response.body, domainConfig);
       })
       .then(function (res) {
         domainConfig.id = res.body.object_id;
         return domainConfig;
       });
+  },
+
+  checkStatus: function (domainId) {
+    return DomainConfigsResource
+      .status(domainId)
+      .getOne()
+      .expect(200)
+      .then(function (response) {
+        return response.body;
+      })
+      .catch(new Error('Response status is not 200'));
   }
 };

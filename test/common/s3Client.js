@@ -28,7 +28,7 @@ S3Client.prototype.connect = function (host, username, password, callback) {
 
   if (!self.client) {
     try {
-      console.log('s3 credentials', username, password);
+//      console.log('s3 credentials', username, password);
       Client.config.update({
         accessKeyId: username,
         secretAccessKey: password
@@ -63,21 +63,20 @@ S3Client.prototype.list = function (bucket, callback) {
   }
 };
 
-S3Client.prototype.download = function (filename, bucket, dest, callback) {
-  // Deprecated
-  // var self = this;
-  // if (self.client) {
-  //     var params = {
-  //         Bucket: bucket,
-  //         IfMatch: filename
-  //     };
-  //     s3.getObject(params, function(err, data) {
-  //         if (err) console.log(err, err.stack); // an error occurred
-  //         else     console.log(data);           // successful response
-  //     });
-  // } else {
-  //     callback(new Error('S3 is not connected'), null);
-  // }
+S3Client.prototype.download = function (key, bucket, callback) {
+  var self = this;
+  if (self.client) {
+      var params = {
+          Bucket: bucket,
+          Key: key
+      };
+      self.client.getObject(params, function(err, data) {
+          if (err) callback(err, undefined);
+          else     callback(undefined, data);
+      });
+  } else {
+      callback(new Error('S3 is not connected'), undefined);
+  }
 };
 
 S3Client.prototype.deleteMany = function (bucket, files, callback) {
