@@ -25,6 +25,7 @@ module.exports = {
     'response',
     'request',
     's_bytes',
+    's_body_bytes',
     'r_bytes',
     'method',
     'conn_status',
