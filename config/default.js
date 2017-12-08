@@ -1,4 +1,4 @@
-{
+module.exports = {
   "run_logshipping_jobs": true,
   "run_logcleaning_jobs": true,
   "log": {
@@ -21,7 +21,7 @@
     "connect_string": "mongodb://TESTSJC20-CMDB01.REVSW.NET:27017/revportal?replicaSet=CMDB-rs0"
   },
   "logshipper_mongo": {
-    "connect_string": "127.0.0.1:27017/logshipper"
+    "connect_string": process.env.MONGODB_URI || "127.0.0.1:27017/logshipper"
   },
   "mongoose_debug_logging": false,
   "version_file": "./config/version.txt",
@@ -66,9 +66,10 @@
   "notify_developers_by_email_about_bad_implementation": "",
   "notify_developers_by_email_about_uncaught_exceptions": "",
 
-  "support_email" : "support@revapm.com",
-  "support_name" : "RevAPM Support Team",
+  "support_email": "support@revapm.com",
+  "support_name": "RevAPM Support Team",
 
   "active_account_ids": [],
-  "suppressed_account_ids": []
-}
+  "suppressed_account_ids": [],
+  "delete_shipped_files": true
+};
