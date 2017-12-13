@@ -270,8 +270,7 @@ describe('Functional check', function () {
             '/',
             path.join(
               __dirname,
-              '../../common',
-              file.name
+              '../../common'
             ),
             function () {
               fs.readFile(path.join(
