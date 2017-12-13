@@ -278,56 +278,54 @@ describe('Functional check', function () {
                 '../../common',
                 file.name
               ), function read(err, data) {
-                console.log(data);
-              });
-              /*zlib.unzip(res.Body, function (err, buffer) {
-                if (err) {
-                  console.log(err);
-                  return;
-                }
-                var logJSON = buffer.toString();
-                // fix json format...
-                logJSON = logJSON.replace(/%{referer}/g, '');
-                logJSON = logJSON.replace(/}/g, '},');
-                logJSON = logJSON.substr(0, logJSON.length - 2);
-                logJSON = '[' + logJSON + ']';
-                logJSON = JSON.parse(logJSON);
-                logJSON.forEach(function (js) {
-                  for (var field in js) {
-                    if (js.hasOwnProperty(field) && field !== '_id') {
-                      Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.not.equal(-1);
-                      if (Constants.JOB_EXPECTED_FIELDS.indexOf(field) === -1) {
-                        console.log('Unexpected field: `' + field + '`');
-                      }
-                    } else if (field === '_id') {
-                      Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.equal(-1);
-                    }
+                zlib.unzip(data, function (err, buffer) {
+                  if (err) {
+                    console.log(err);
+                    return;
                   }
-                  filesToUnlink.push(
-                    fs.unlink(
-                      path.join(
-                        __dirname,
-                        '../../common',
-                        config.get('logshipper.ftp.root'),
-                        file.name
-                      ),
-                      function () {
-                        console.log('Removed ' + file.name + ' from local ftp');
+                  var logJSON = buffer.toString();
+                  // fix json format...
+                  logJSON = logJSON.replace(/%{referer}/g, '');
+                  logJSON = logJSON.replace(/}/g, '},');
+                  logJSON = logJSON.substr(0, logJSON.length - 2);
+                  logJSON = '[' + logJSON + ']';
+                  logJSON = JSON.parse(logJSON);
+                  logJSON.forEach(function (js) {
+                    for (var field in js) {
+                      if (js.hasOwnProperty(field) && field !== '_id') {
+                        Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.not.equal(-1);
+                        if (Constants.JOB_EXPECTED_FIELDS.indexOf(field) === -1) {
+                          console.log('Unexpected field: `' + field + '`');
+                        }
+                      } else if (field === '_id') {
+                        Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.equal(-1);
                       }
-                    )
-                  );
-                  Promise.all(filesToUnlink)
-                    .then(function () {
-                      done();
-                    })
-                    .catch(function () {
-                      throw new Error('One of files could not be removed');
-                    });
+                    }
+                    filesToUnlink.push(
+                      fs.unlink(
+                        path.join(
+                          __dirname,
+                          '../../common',
+                          config.get('logshipper.ftp.root'),
+                          file.name
+                        ),
+                        function () {
+                          console.log('Removed ' + file.name + ' from local ftp');
+                        }
+                      )
+                    );                    
+                  });
                 });
-              });*/
+              });
             });
         });
-        done();
+        Promise.all(filesToUnlink)
+        .then(function () {
+          done();
+        })
+        .catch(function () {
+          throw new Error('One of files could not be removed');
+        });
       }
     });
 
