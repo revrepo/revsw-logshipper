@@ -251,10 +251,10 @@ describe('Functional check', function () {
         setTimeout(function () {
           ftpClient.list('/', function (err, files) {
             files.length.should.be.above(1);
-            var filesToUnlink = [];
             files.forEach(function (file) {
               if (file.name !== config.get('logshipper.ftp.test_file')) {
                 logFiles.push(file);
+                done();
               }
             });
           });
@@ -275,6 +275,7 @@ describe('Functional check', function () {
             ),
             function (res) {
               console.log(res);
+              done();
               /*zlib.unzip(data.Body, function (err, buffer) {
                 if (err) {
                   console.log(err);
