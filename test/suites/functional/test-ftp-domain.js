@@ -48,7 +48,7 @@ describe('Functional check', function () {
   before(function (done) {
     API.helpers
       .authenticateUser(revAdmin)
-      .then(function () {
+      .then(function () {        
         return utils.getProxyServers();
       })
       .then(function (servers) {
@@ -243,16 +243,17 @@ describe('Functional check', function () {
       }, 120 * 1000);
     });
 
+    var logFiles = [];
+
     it('should complete logshipping job and send logs to local ftp server in ' + jobMinutes +
       ' minutes', function (done) {
         setTimeout(function () {
           ftpClient.list('/', function (err, files) {
-            console.log(files);
             files.length.should.be.above(1);
-            var filesToUnlink = [];
-
+            var filesToUnlink = [];            
             files.forEach(function (file) {
               if (file.name !== config.get('logshipper.ftp.test_file')) {
+                logFiles.push(file);
                 filesToUnlink.push(
                   fs.unlink(
                     path.join(
@@ -278,6 +279,24 @@ describe('Functional check', function () {
               });
           });
         }, jobMinutes * 60 * 1000);
+      });
+
+      it('should contain all expected fields in a Log Shipping JSON object', function () {
+        if (logFiles.length > 0) {
+          logFiles.forEach(function (file) {
+            ftpClient.download(
+              file,
+              '/',
+              path.join(
+                __dirname,
+                '../../common',
+                file
+              ),
+              function (res) {
+                console.log(res);
+              });
+          });
+        }
       });
 
     it('should stop logshipping job for ftp server', function (done) {
