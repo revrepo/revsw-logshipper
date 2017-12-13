@@ -253,10 +253,10 @@ describe('Functional check', function () {
             files.length.should.be.above(1);
             files.forEach(function (file) {
               if (file.name !== config.get('logshipper.ftp.test_file')) {
-                logFiles.push(file);
-                done();
+                logFiles.push(file);                
               }
             });
+            done();
           });
         }, jobMinutes * 60 * 1000);
       });
