@@ -273,10 +273,15 @@ describe('Functional check', function () {
               '../../common',
               file.name
             ),
-            function (res) {
-              console.log(res);
-              done();
-              /*zlib.unzip(data.Body, function (err, buffer) {
+            function () {
+              fs.readFile(path.join(
+                __dirname,
+                '../../common',
+                file.name
+              ), function read(err, data) {
+                console.log(data);
+              });
+              /*zlib.unzip(res.Body, function (err, buffer) {
                 if (err) {
                   console.log(err);
                   return;
@@ -313,16 +318,17 @@ describe('Functional check', function () {
                     )
                   );
                   Promise.all(filesToUnlink)
-                  .then(function () {
-                    done();
-                  })
-                  .catch(function () {
-                    throw new Error('One of files could not be removed');
-                  });
+                    .then(function () {
+                      done();
+                    })
+                    .catch(function () {
+                      throw new Error('One of files could not be removed');
+                    });
                 });
               });*/
             });
         });
+        done();
       }
     });
 
