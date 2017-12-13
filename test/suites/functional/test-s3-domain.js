@@ -20,6 +20,7 @@ var should = require('should-http');
 var request = require('supertest');
 var Promise = require('bluebird');
 var fs = Promise.promisifyAll(require('fs'));
+var zlib = require('zlib');
 var path = require('path');
 var config = require('config');
 var API = require('./../../common/api');
@@ -249,34 +250,33 @@ describe('Functional check', function () {
         s3Client.download(file.Key, firstLsJ.destination_host, function (err, data) {
           if (err) {
             console.log(err);
-          } else {
-            new decompress({ mode: '755' })
-              .src(data.Body)
-              .dest('./../../common/uploads')
-              .use(decompress.zip({ strip: 1 }))
-              .run(function (err, files) {
-                files.forEach(function (file) {                  
-                  // fix json format...
-                  var logJSON = file.contents.toString().replaceAll('%{referer}', '');
-                  logJSON = logJSON.replaceAll('}', '},');
-                  logJSON = logJSON.substr(0, logJSON.length - 2);
-                  logJSON = '[' + logJSON + ']';    
-                  logJSON = JSON.parse(logJSON);
-                  logJSON.forEach(function (js) {
-                    for (var field in js) {
-                      if (js.hasOwnProperty(field) && field !== '_id') {
-                        Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.not.equal(-1);                        
-                      } else if (field === '_id') {
-                        Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.equal(-1);
-                      }
-                    }
-                    
-                  });
-                });
+          } else { 
+            zlib.unzip(data.Body, function(err, buffer) {  
+              if(err){
+                console.log(err);
+                return;
+              }
+              var logJSON = buffer.toString();              
+              // fix json format...
+              logJSON = logJSON.replace(/%{referer}/g, '');
+              logJSON = logJSON.replace(/}/g, '},');
+              logJSON = logJSON.substr(0, logJSON.length - 2);
+              logJSON = '[' + logJSON + ']';    
+              logJSON = JSON.parse(logJSON);
+              logJSON.forEach(function (js) {
+                for (var field in js) {
+                  if (js.hasOwnProperty(field) && field !== '_id') {
+                    Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.not.equal(-1);                        
+                  } else if (field === '_id') {
+                    Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.equal(-1);
+                  }
+                }
+
+              }); 
               });
           }
         });
-      });     
+      });      
       done(); 
     });
 
