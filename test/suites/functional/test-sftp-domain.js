@@ -286,11 +286,11 @@ describe('Functional check', function () {
     it('should complete logshipping job and send logs to sftp server in ' + jobMinutes +
       ' minutes', function (done) {
         setTimeout(function () {
-          sftpClient.list('./', function (err, files) {            
+          sftpClient.list('./', function (err, files) {
             files.length.should.be.above(1);
             files.forEach(function (file) {
               if (file.name !== config.get('logshipper.ftp.test_file')) {
-                logFiles.push(file);                
+                logFiles.push(file);
               }
             });
             done();
@@ -320,22 +320,17 @@ describe('Functional check', function () {
                     console.log(err);
                     return;
                   }
-                  var logJSON = buffer.toString();
-                  // fix json format...
-                  logJSON = logJSON.replace(/%{referer}/g, '');
-                  logJSON = logJSON.replace(/}/g, '},');
-                  logJSON = logJSON.substr(0, logJSON.length - 2);
-                  logJSON = '[' + logJSON + ']';
-                  logJSON = JSON.parse(logJSON);
-                  logJSON.forEach(function (js) {
-                    for (var field in js) {
-                      if (js.hasOwnProperty(field) && field !== '_id') {
-                        Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.not.equal(-1);
-                        if (Constants.JOB_EXPECTED_FIELDS.indexOf(field) === -1) {
-                          console.log('Unexpected field: `' + field + '`');
-                        }
-                      } else if (field === '_id') {
-                        Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.equal(-1);
+                  var logJSONs = buffer.toString();
+                  logJSONs = logJSONs.split('\n');
+                  logJSONs.forEach(function (js) {
+                    if (js !== undefined && js !== '') {
+                      var JSONFields = utils
+                        .checkJSONFields(JSON.parse(js), Constants.JOB_EXPECTED_FIELDS);
+                      if (JSONFields.res) {
+                        JSONFields.res.should.be.equal(true);
+                      } else {
+                        console.log('Unexpected fields: ' + JSONFields.unexpectedFields.toString());
+                        console.log('Missing Fields: ' + JSONFields.missingFields.toString());
                       }
                     }
                     filesToUnlink.push(

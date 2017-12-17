@@ -45,7 +45,7 @@ module.exports = {
       .getOne()
       .expect(200)
       .then(function (response) {
-        return response.body;
+        return response.body;        
       })
       .catch(new Error('Response status is not 200'));
   }

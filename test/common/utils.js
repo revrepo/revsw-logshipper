@@ -81,5 +81,41 @@ module.exports = {
         console.log('Proxy ' + serverHost + ' error (' + domainName + '): ', error);
         return Promise.reject(error);
       });
+  },
+
+  /* 
+  * Compare a JSON object to a constant array of fields (strings)
+  * check if all the fields in the JSON object are present in the array field
+  * check if all the fields in the array are present in the JSON object
+  *
+  * returns an object, res, unexpectedFields, missingFields.
+  */
+  checkJSONFields: function (JSONObject, fieldConstants) {
+    var res = true;
+    var unexpectedFields = [];
+    var missingFields = [];
+    for (var field in JSONObject) {
+      if (JSONObject.hasOwnProperty(field)) {
+        if (fieldConstants.indexOf(field) === -1 && field !== '_id') {
+          res = false;
+          unexpectedFields.push(field);
+        }
+      }
+    }
+    var secJSON = [];
+    for (var key in JSONObject) {
+      secJSON.push(key);
+    }
+    for (var i = 0; i < fieldConstants.length; i++) {
+      if (secJSON.indexOf(fieldConstants[i]) === -1 && field !== '_id') {
+        res = false;
+        missingFields.push(fieldConstants[i]);
+      }
+    }
+    return {
+      res: res, // true or false
+      unexpectedFields: unexpectedFields, // array of unexpected fields
+      missingFields: missingFields // array of fields missing from the JSON object
+    };
   }
 };

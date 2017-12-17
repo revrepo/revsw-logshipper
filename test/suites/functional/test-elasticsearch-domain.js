@@ -234,13 +234,15 @@ describe('Functional check', function () {
         }, jobMinutes * 60 * 1000);
       });
 
-    it('should only contain expected fields in a log shipping JSON object', function (done) {
-      for (var field in hitJSON._source) {
-        if (hitJSON._source.hasOwnProperty(field)) {
-          Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.not.equal(-1);
-        }
+    it('should only contain all expected fields in a log shipping JSON object', function (done) {
+      var JSONFields = utils.checkJSONFields(hitJSON._source, Constants.JOB_EXPECTED_FIELDS);
+      if (JSONFields.res) {
+        done();
+      } else {
+        console.log('Unexpected fields: ' + JSONFields.unexpectedFields.toString());
+        console.log('Missing Fields: ' + JSONFields.missingFields.toString());
+        done();
       }
-      done();
     });
 
     it('should stop logshipping job for elastic', function (done) {
