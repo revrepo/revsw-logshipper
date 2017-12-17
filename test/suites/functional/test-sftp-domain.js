@@ -358,6 +358,8 @@ describe('Functional check', function () {
           .catch(function () {
             throw new Error('One of files could not be removed');
           });
+      } else {
+        done();
       }
     });
 
