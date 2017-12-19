@@ -1,11 +1,36 @@
 {
   "logshipper": {
     "ftp": {
-      "host": "127.0.0.1",
-      "root": "uploads",
-      "download": "downloads",
-      "script": "ftpServer.js",
-      "test_file": "test-file"
+      "localhost": {
+        "host": "127.0.0.1",
+        "port": "3021",
+        "username": "logshipper",
+        "password": "logshipper",
+        "root": "uploads",
+        "download": "downloads",
+        "script": "ftpServer.js",
+        "test_file": "test-file"
+      },
+      "remote_ip": {
+        "host": "192.168.4.75",
+        "port": "21",
+        "username": "ftp-test",
+        "password": "ftp-test",
+        "root": "uploads",
+        "download": "downloads",
+        "script": "ftpServer.js",
+        "test_file": "test-file"
+      },
+      "remote_domain": {
+        "host": "TESTSJC20-WEBSITE01.REVSW.NET",
+        "port": "21",
+        "username": "ftp-test",
+        "password": "ftp-test",
+        "root": "uploads",
+        "download": "downloads",
+        "script": "ftpServer.js",
+        "test_file": "test-file"
+      }
     },
     "sftp": {
       "host": "127.0.0.1",

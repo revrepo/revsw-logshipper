@@ -24,19 +24,19 @@ var path = require('path');
 var server;
 var options = {
   host: utils.getLocalIP(),
-  port: '3021',
+  port: config.get('logshipper.ftp.localhost.port'),
   tls: null
 };
 
 console.log(options);
 
 server = new ftpd.FtpServer(options.host, {
-  getInitialCwd: function () {
+  getInitialCwd: function () { // TODO: delete - not used
     return '/';
   },
   getRoot: function () {
-    console.log(path.join(__dirname, config.get('logshipper.ftp.root')));
-    return path.join(__dirname, config.get('logshipper.ftp.root'));
+    console.log(path.join(__dirname, config.get('logshipper.ftp.localhost.root')));
+    return path.join(__dirname, config.get('logshipper.ftp.localhost.root'));
   },
   pasvPortRangeStart: 1025,
   pasvPortRangeEnd: 1050,

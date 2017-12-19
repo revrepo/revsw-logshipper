@@ -53,8 +53,11 @@ var LogShippingJobsDataProvider = {
     };
   },
 
-  generateUpdateData: function(accountId, destination, source, sourceId, operationalMode, prefix) {
+  generateUpdateData: function(accountId, destination, source, sourceId, operationalMode, prefix, customOptions) {
     var _prefix = prefix || this.prefix;
+    if(!customOptions){
+      customOptions = {};
+    }
     var destinationHost = '',
         destinationPort = '',
         destinationKey = '',
@@ -76,10 +79,10 @@ var LogShippingJobsDataProvider = {
       destinationKey = 'AKIAILBHZGM6EDTD2JYQ'; // separate AWS account for QA: eng@nuubit.com
       password = '4zo2n2XE0wc7cNFQaaf6ErL2ZjzUpM/9qDFduKkb'; // S3 SecretKey
     } else if (destination === 'ftp') {
-      destinationHost = config.get('logshipper.ftp.host');
-      destinationPort = '3021';
-      username = 'logshipper';
-      password = 'logshipper';
+      destinationHost = config.get('logshipper.ftp.localhost.host');
+      destinationPort = config.get('logshipper.ftp.localhost.port');
+      username = config.get('logshipper.ftp.localhost.username');//'logshipper'; 
+      password = config.get('logshipper.ftp.localhost.password');//'logshipper';
     } else if (destination === 'sftp') {
       destinationHost = '192.168.4.75';   // TESTSJC20-WEBSITE01, separate SSHD process managed
                                           // using /etc/init.d/ssh-sftp
@@ -99,15 +102,15 @@ var LogShippingJobsDataProvider = {
       account_id: accountId,
       source_type: source,
       source_id: sourceId,
-      destination_type: destination,
-      destination_host: destinationHost,
-      destination_port: destinationPort,
-      destination_username: username,
-      destination_password: password,
-      destination_key: destinationKey,
-      notification_email: '',
+      destination_type: customOptions.destination_type || destination,
+      destination_host: customOptions.destination_host || destinationHost,
+      destination_port: customOptions.destination_port || destinationPort,
+      destination_username: customOptions.destination_username || username,
+      destination_password: customOptions.destination_password || password,
+      destination_key: customOptions.destination_key || destinationKey,
+      notification_email: customOptions.notification_email || '',
       comment: 'test commment for logshipping job',
-      operational_mode: operationalMode
+      operational_mode: customOptions.operational_mode || operationalMode
     };
   },
 
