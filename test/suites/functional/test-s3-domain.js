@@ -250,34 +250,31 @@ describe('Functional check', function () {
         s3Client.download(file.Key, firstLsJ.destination_host, function (err, data) {
           if (err) {
             console.log(err);
-          } else { 
-            zlib.unzip(data.Body, function(err, buffer) {  
-              if(err){
+          } else {
+            zlib.unzip(data.Body, function (err, buffer) {
+              if (err) {
                 console.log(err);
                 return;
               }
-              var logJSON = buffer.toString();              
-              // fix json format...
-              logJSON = logJSON.replace(/%{referer}/g, '');
-              logJSON = logJSON.replace(/}/g, '},');
-              logJSON = logJSON.substr(0, logJSON.length - 2);
-              logJSON = '[' + logJSON + ']';    
-              logJSON = JSON.parse(logJSON);
-              logJSON.forEach(function (js) {
-                for (var field in js) {
-                  if (js.hasOwnProperty(field) && field !== '_id') {
-                    Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.not.equal(-1);                        
-                  } else if (field === '_id') {
-                    Constants.JOB_EXPECTED_FIELDS.indexOf(field).should.be.equal(-1);
+              var logJSONs = buffer.toString();
+              logJSONs = logJSONs.split('\n');
+              logJSONs.forEach(function (js) {
+                if (js !== undefined && js !== '') {
+                  var JSONFields = utils
+                    .checkJSONFields(JSON.parse(js), Constants.JOB_EXPECTED_FIELDS);
+                  if (JSONFields.res) {
+                    JSONFields.res.should.be.equal(true);
+                  } else {
+                    console.log('Unexpected fields: ' + JSONFields.unexpectedFields.toString());
+                    console.log('Missing Fields: ' + JSONFields.missingFields.toString());
                   }
                 }
-
-              }); 
               });
+            });
           }
         });
-      });      
-      done(); 
+      });
+      done();
     });
 
     it('should stop logshipping job for s3 bucket', function (done) {
