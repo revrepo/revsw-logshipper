@@ -20,6 +20,7 @@ var childProcess = require('child_process');
 var should = require('should-http');
 var request = require('supertest');
 var Promise = require('bluebird');
+var zlib = require('zlib');
 var fs = Promise.promisifyAll(require('fs'));
 var path = require('path');
 var config = require('config');
@@ -255,45 +256,88 @@ describe('Functional check', function() {
       }, 120 * 1000);
     });
 
-    it('should complete logshipping job and send logs to local ftp server in ' + jobMinutes +
-      ' minutes',
-      function(done) {
-        setTimeout(function() {
-          ftpClient.list('/', function(err, files) {
-            files.length.should.be.above(1);
-            var filesToUnlink = [];
+    var logFiles = [];
 
-            files.forEach(function(file) {
-              if (file.name !== config.get('logshipper.ftp.localhost.test_file')) {
-                filesToUnlink.push(
-                  fs.unlink(
-                    path.join(
-                      __dirname,
-                      '../../common',
-                      config.get('logshipper.ftp.localhost.root'),
-                      file.name
-                    ),
-                    function() {
-                      console.log('Removed ' + file.name + ' from local ftp');
-                    }
-                  )
-                );
+    it('should complete logshipping job and send logs to local ftp server in ' + jobMinutes +
+      ' minutes', function (done) {
+        setTimeout(function () {
+          ftpClient.list('/', function (err, files) {
+            files.length.should.be.above(1);
+            files.forEach(function (file) {
+              if (file.name !== config.get('logshipper.ftp.test_file')) {
+                logFiles.push(file);
               }
             });
-
-            Promise.all(filesToUnlink)
-              .then(function() {
-                done();
-              })
-              .catch(function(err) {
-                done(new Error('One of files could not be removed'));
-                throw new Error('One of files could not be removed');
-              });
+            done();
           });
         }, jobMinutes * 60 * 1000);
       });
 
-    it('should stop logshipping job for ftp server', function(done) {
+    it('should contain all expected fields in a Log Shipping JSON object', function (done) {
+      var filesToUnlink = [];
+      if (logFiles.length > 0) {
+        logFiles.forEach(function (file) {
+          ftpClient.download(
+            file.name,
+            '/',
+            path.join(
+              __dirname,
+              '../../common'
+            ),
+            function () {
+              fs.readFile(path.join(
+                __dirname,
+                '../../common',
+                file.name
+              ), function read(err, data) {
+                zlib.unzip(data, function (err, buffer) {
+                  if (err) {
+                    console.log(err);
+                    return;
+                  }
+                  var logJSONs = buffer.toString();
+                  logJSONs = logJSONs.split('\n');
+                  logJSONs.forEach(function (js) {
+                    if (js !== undefined && js !== '') {
+                      var JSONFields = utils
+                        .checkJSONFields(JSON.parse(js), Constants.JOB_EXPECTED_FIELDS);
+                      if (JSONFields.res) {
+                        JSONFields.res.should.be.equal(true);
+                      } else {
+                        console.log('Unexpected fields: ' + JSONFields.unexpectedFields.toString());
+                        console.log('Missing Fields: ' + JSONFields.missingFields.toString());
+                      }
+                    }
+                    filesToUnlink.push(
+                      fs.unlink(
+                        path.join(
+                          __dirname,
+                          '../../common',
+                          config.get('logshipper.ftp.localhost.root'),
+                          file.name
+                        ),
+                        function () {
+                          console.log('Removed ' + file.name + ' from local ftp');
+                        }
+                      )
+                    );
+                  });
+                });
+              });
+            });
+        });
+        Promise.all(filesToUnlink)
+          .then(function () {
+            done();
+          })
+          .catch(function () {
+            done(new Error('One of files could not be removed'));
+            // throw new Error('One of files could not be removed');
+          });
+      }
+    });
+
+    it('should stop logshipping job for ftp server', function (done) {
       var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
         account.id,
         'ftp',
