@@ -2,7 +2,7 @@
  *
  * REV SOFTWARE CONFIDENTIAL
  *
- * [2013] - [2016] Rev Software, Inc.
+ * [2013] - [2017] Rev Software, Inc.
  * All Rights Reserved.
  *
  * NOTICE:  All information contained herein is, and remains
@@ -17,6 +17,7 @@
  */
 
 var Client = require('ftps');
+var _ =require('lodash');
 var fs = require('fs');
 var Promise = require('bluebird');
 var path = require('path');
@@ -25,21 +26,29 @@ var SFtpClient = function () {
   this.client = false;
 };
 
-SFtpClient.prototype.connect = function (host, port, username, password, callback) {
+SFtpClient.prototype.connect = function (options, callback) {
   var self = this;
 
   try {
-    var options = {
-      host: host,
-      username: username,
-      password: password,
-      port: port,
+    options = _.merge({},{
+      // host: host,
+      // username: username,
+      // password: password,
+      port: 21,
       protocol: 'sftp',
       timeout: 40,
-      retries: 3
-    };
+      retries: 3,
+      autoConfirm: true, // set sftp:auto-confirm yes
+    }, options);  
     self.client = new Client(options);
-    callback(null);
+    // NOTE: check access to ftp server
+    self.client.ls().exec(function(err,data){
+      if(err || data.error){
+        self.client = false;
+        throw new Error('Connection error');
+      }
+      callback(null);
+    });
   } catch (error) {
     callback(error);
   }
@@ -55,7 +64,7 @@ SFtpClient.prototype.list = function (filesPath, callback) {
         if (!err) {
           var files = res.data.split('\n')
             .filter(function (file) {
-              return !!(file.indexOf('.zip') !== -1 || file.indexOf('test-file') !== -1);
+              return !!(file.indexOf('.gz') !== -1 || file.indexOf('test-file') !== -1);
             })
             .map(function (filename) {
               var filenameSplit = filename.split(' ');

@@ -2,7 +2,7 @@
  *
  * REV SOFTWARE CONFIDENTIAL
  *
- * [2013] - [2016] Rev Software, Inc.
+ * [2013] - [2017] Rev Software, Inc.
  * All Rights Reserved.
  *
  * NOTICE:  All information contained herein is, and remains
@@ -146,17 +146,19 @@ describe('Functional check', function () {
     it('should ping and get response from sftp server', function (done) {
       setTimeout(function () {
         sftpClient = new SFtpClient();
-        sftpClient.connect(
-          firstLsJ.destination_host,
-          firstLsJ.destination_port,
-          firstLsJ.destination_username,
-          firstLsJ.destination_password,
-          function (err) {
+        var options = {
+          host: firstLsJ.destination_host,
+          port: firstLsJ.destination_port,
+          username: firstLsJ.destination_username,
+          password: firstLsJ.destination_password,
+          protocol: firstLsJ.destination_type
+        };
+        sftpClient.connect(options, function (err) {
             if (!err) {
               done();
             } else {
               console.log('sftp client connection error: ', err);
-              throw new Error('Could not connect to local sftp server');
+              done(new Error('Could not connect to local sftp server'));
             }
           });
       }, 3000);
@@ -170,7 +172,7 @@ describe('Functional check', function () {
             files.length.should.be.above(0);
             done();
           } else {
-            throw err;
+            done(err);
           }
         });
     });
@@ -289,7 +291,8 @@ describe('Functional check', function () {
           sftpClient.list('./', function (err, files) {
             files.length.should.be.above(1);
             files.forEach(function (file) {
-              if (file.name !== config.get('logshipper.ftp.test_file')) {
+              var fileName = file;
+              if (fileName !== config.get('logshipper.sftp.test_file')) { 
                 logFiles.push(file);
               }
             });
@@ -302,22 +305,25 @@ describe('Functional check', function () {
       var filesToUnlink = [];
       if (logFiles.length > 0) {
         logFiles.forEach(function (file) {
+          var fileName = file;
           sftpClient.download(
-            file.name,
-            '/',
+            fileName,
+            './',
             path.join(
               __dirname,
-              '../../common'
+              '../../common',
+              config.get('logshipper.sftp.download')
             ),
             function () {
               fs.readFile(path.join(
                 __dirname,
-                '../../common',
-                file.name
+                '../../common', 
+                config.get('logshipper.sftp.download'),
+                fileName
               ), function read(err, data) {
                 zlib.unzip(data, function (err, buffer) {
                   if (err) {
-                    console.log(err);
+                    console.log('zlib.unzip:err',err);
                     return;
                   }
                   var logJSONs = buffer.toString();
@@ -332,17 +338,17 @@ describe('Functional check', function () {
                         console.log('Unexpected fields: ' + JSONFields.unexpectedFields.toString());
                         console.log('Missing Fields: ' + JSONFields.missingFields.toString());
                       }
-                    }
+                    } 
                     filesToUnlink.push(
                       fs.unlink(
                         path.join(
                           __dirname,
                           '../../common',
-                          config.get('logshipper.ftp.root'),
-                          file.name
+                          config.get('logshipper.sftp.download'),
+                          fileName
                         ),
                         function () {
-                          console.log('Removed ' + file.name + ' from local ftp');
+                          console.log('Removed ' + fileName + ' from local directory');
                         }
                       )
                     );
