@@ -34,7 +34,7 @@ SFtpClient.prototype.connect = function (options, callback) {
       // host: host,
       // username: username,
       // password: password,
-      // port: port,
+      port: 21,
       protocol: 'sftp',
       timeout: 40,
       retries: 3,
