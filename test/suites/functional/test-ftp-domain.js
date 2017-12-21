@@ -259,11 +259,12 @@ describe('Functional check', function() {
     var logFiles = [];
 
     it('should complete logshipping job and send logs to local ftp server in ' + jobMinutes +
-      ' minutes', function (done) {
-        setTimeout(function () {
-          ftpClient.list('/', function (err, files) {
+      ' minutes',
+      function(done) {
+        setTimeout(function() {
+          ftpClient.list('/', function(err, files) {
             files.length.should.be.above(1);
-            files.forEach(function (file) {
+            files.forEach(function(file) {
               if (file.name !== config.get('logshipper.ftp.test_file')) {
                 logFiles.push(file);
               }
@@ -273,10 +274,10 @@ describe('Functional check', function() {
         }, jobMinutes * 60 * 1000);
       });
 
-    it('should contain all expected fields in a Log Shipping JSON object', function (done) {
+    it('should contain all expected fields in a Log Shipping JSON object', function(done) {
       var filesToUnlink = [];
       if (logFiles.length > 0) {
-        logFiles.forEach(function (file) {
+        logFiles.forEach(function(file) {
           ftpClient.download(
             file.name,
             '/',
@@ -284,20 +285,20 @@ describe('Functional check', function() {
               __dirname,
               '../../common'
             ),
-            function () {
+            function() {
               fs.readFile(path.join(
                 __dirname,
                 '../../common',
                 file.name
               ), function read(err, data) {
-                zlib.unzip(data, function (err, buffer) {
+                zlib.unzip(data, function(err, buffer) {
                   if (err) {
                     console.log(err);
                     return;
                   }
                   var logJSONs = buffer.toString();
                   logJSONs = logJSONs.split('\n');
-                  logJSONs.forEach(function (js) {
+                  logJSONs.forEach(function(js) {
                     if (js !== undefined && js !== '') {
                       var JSONFields = utils
                         .checkJSONFields(JSON.parse(js), Constants.JOB_EXPECTED_FIELDS);
@@ -316,7 +317,7 @@ describe('Functional check', function() {
                           config.get('logshipper.ftp.localhost.root'),
                           file.name
                         ),
-                        function () {
+                        function() {
                           console.log('Removed ' + file.name + ' from local ftp');
                         }
                       )
@@ -327,17 +328,17 @@ describe('Functional check', function() {
             });
         });
         Promise.all(filesToUnlink)
-          .then(function () {
+          .then(function() {
             done();
           })
-          .catch(function () {
+          .catch(function() {
             done(new Error('One of files could not be removed'));
             // throw new Error('One of files could not be removed');
           });
       }
     });
 
-    it('should stop logshipping job for ftp server', function (done) {
+    it('should stop logshipping job for ftp server', function(done) {
       var firstLsJConfig = LogShippingJobsDP.generateUpdateData(
         account.id,
         'ftp',
@@ -527,7 +528,10 @@ describe('Functional check', function() {
     it('should get list files from home directory', function(done) {
       ftpClient.cd('~/').ls()
         .exec(function(err, data) {
-          done(err || data.error);
+          if (err || data.error) {
+            return done(new Error('Error getting list files from home directory '));
+          }
+          done();
         });
     });
 
@@ -540,7 +544,10 @@ describe('Functional check', function() {
           .ls().exec(function(err, data) {
             if (!err && !data.error) {
               // console.log('regEx.test(data)', regEx, remoteFTPLsJ.id, regEx.test(data.data), data.data)
-              return done(!regEx.test(data.data));
+              if (!regEx.test(data.data)) {
+                return done(new Error('File with Job Id in home directory not found'));
+              }
+              return done();
             } else {
               done(new Error('Could not get list files from remote ftp server'));
             }
