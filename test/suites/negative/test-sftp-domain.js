@@ -2,7 +2,7 @@
  *
  * REV SOFTWARE CONFIDENTIAL
  *
- * [2013] - [2016] Rev Software, Inc.
+ * [2013] - [2017] Rev Software, Inc.
  * All Rights Reserved.
  *
  * NOTICE:  All information contained herein is, and remains
@@ -156,16 +156,18 @@ describe('Negative check', function () {
 
     it('should fail to get response from sftp server', function (done) {
       sftpClient = new SFtpClient();
-      sftpClient.connect(
-        firstLsJ.destination_host,
-        firstLsJ.destination_port,
-        firstLsJ.username,
-        firstLsJ.password,
-        function (err) {
+      var options = {
+        host: firstLsJ.destination_host,
+        port: firstLsJ.destination_port,
+        username: firstLsJ.username,
+        password: firstLsJ.password,
+        protocol: firstLsJ.destination_type
+      };
+      sftpClient.connect(options, function (err) {
           if (err) {
             done();
           } else {
-            throw new Error('Connected to local sftp server somehow');
+            done(new Error('Connected to local sftp server somehow'));
           }
         });
     });
@@ -177,20 +179,17 @@ describe('Negative check', function () {
         API.helpers
           .authenticateUser(revAdmin)
           .then(function () {
-            API.resources.logShippingJobs
+            return API.resources.logShippingJobs
               .getOne(firstLsJ.id)
               .expect(200)
               .then(function (res) {
                 var responseJson = res.body;
                 responseJson.operational_mode.should.be.equal('pause');
                 done();
-              })
-              .catch(function (error) {
-                throw error;
               });
           })
           .catch(function (error) {
-            throw error;
+            done(error);
           });
       }, jobMinutes * 60 * 1000);
     });

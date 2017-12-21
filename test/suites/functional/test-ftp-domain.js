@@ -29,7 +29,7 @@ var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs')
 var utils = require('./../../common/utils');
 var DomainHelpers = require('./../../common/helpers/domainConfigs');
 var ftps = require('ftps');
-var FtpClient = require('./../../common/ftpClient');
+var FtpClient = require('./../../common/sftpClient');
 var Constants = require('./../../common/constants');
 
 describe('Functional check', function() {
@@ -151,26 +151,27 @@ describe('Functional check', function() {
     it('should ping and get response from ftp server', function(done) {
       setTimeout(function() {
         ftpClient = new FtpClient();
-        ftpClient.connect(
-          firstLsJ.destination_host, // 'localhost',
-          firstLsJ.destination_port,
-          firstLsJ.username,
-          firstLsJ.password,
-          function(err) {
-            if (!err) {
-              done();
-            } else {
-              done(new Error('Could not connect to local ftp server'));
-              throw new Error('Could not connect to local ftp server');
-            }
-          });
+        var options = {
+          host: firstLsJ.destination_host, // 'localhost',
+          port: firstLsJ.destination_port,
+          username: firstLsJ.destination_username,
+          password: firstLsJ.destination_password,
+          protocol: firstLsJ.destination_type
+        };
+        ftpClient.connect(options, function(err) {
+          if (!err) {
+            done();
+          } else {
+            done(new Error('Could not connect to local ftp server'));
+          }
+        });
       }, 20000);
     });
 
     it('should get list from ftp server', function(done) {
       ftpClient.list('/', function(err, files) {
         if (err) {
-          done(err);
+          return done(err);
         }
         files.length.should.be.above(0);
         done();
@@ -265,7 +266,8 @@ describe('Functional check', function() {
           ftpClient.list('/', function(err, files) {
             files.length.should.be.above(1);
             files.forEach(function(file) {
-              if (file.name !== config.get('logshipper.ftp.test_file')) {
+              var fileName = file;
+              if (fileName !== config.get('logshipper.ftp.localhost.test_file')) {
                 logFiles.push(file);
               }
             });
@@ -278,18 +280,21 @@ describe('Functional check', function() {
       var filesToUnlink = [];
       if (logFiles.length > 0) {
         logFiles.forEach(function(file) {
+          var fileName = file;
           ftpClient.download(
-            file.name,
+            fileName,
             '/',
             path.join(
               __dirname,
-              '../../common'
+              '../../common',
+              config.get('logshipper.ftp.localhost.download')
             ),
             function() {
               fs.readFile(path.join(
                 __dirname,
                 '../../common',
-                file.name
+                config.get('logshipper.ftp.localhost.download'),
+                fileName
               ), function read(err, data) {
                 zlib.unzip(data, function(err, buffer) {
                   if (err) {
@@ -314,11 +319,11 @@ describe('Functional check', function() {
                         path.join(
                           __dirname,
                           '../../common',
-                          config.get('logshipper.ftp.localhost.root'),
-                          file.name
+                          config.get('logshipper.ftp.localhost.download'),
+                          fileName
                         ),
                         function() {
-                          console.log('Removed ' + file.name + ' from local ftp');
+                          console.log('Removed ' + fileName + ' from local ftp');
                         }
                       )
                     );
@@ -373,6 +378,8 @@ describe('Functional check', function() {
     var ftpServerProcess;
     var proxyServers;
     var jobMinutes = 1;
+    var logFiles = [];
+    var sftpClient;
 
     before(function(done) {
       API.helpers
@@ -466,6 +473,111 @@ describe('Functional check', function() {
       done();
     });
 
+    it('should ping and get response from ftp server', function(done) {
+      setTimeout(function() {
+        ftpClient = new FtpClient();
+        var options = {
+          host: remoteFTPLsJ.destination_host,
+          port: remoteFTPLsJ.destination_port,
+          username: remoteFTPLsJ.destination_username,
+          password: remoteFTPLsJ.destination_password,
+          protocol: remoteFTPLsJ.destination_type
+        };
+        ftpClient.connect(options, function(err) {
+          if (!err) {
+            done();
+          } else {
+            console.log('sftp client connection error: ', err);
+            done(new Error('Could not connect to local sftp server'));
+          }
+        });
+      }, 3000);
+    });
+
+    it('should get list from ftp server', function(done) {
+      ftpClient.list(
+        './',
+        function(err, files) {
+          if (!err) {
+            files.length.should.be.above(0);
+            done();
+          } else {
+            done(err);
+          }
+        });
+    });
+
+    it('should clean up ftp server', function(done) {
+      setTimeout(function() {
+        ftpClient.list('./', function(err, files) {
+          if (err) {
+            return done(err);
+          }
+          var filesToUnlink = [];
+
+          files.forEach(function(file) {
+            if (file !== config.get('logshipper.sftp.test_file')) {
+              filesToUnlink.push(
+                ftpClient.delete(file, function(err, data) {
+                  if (err) {
+                    throw err;
+                  }
+                })
+              );
+            }
+          });
+
+          Promise.all(filesToUnlink)
+            .then(function() {
+              done();
+            })
+            .catch(function() {
+              done();
+            });
+        });
+      }, 1 * 1000);
+    });
+
+    it('should download test file from ftp server', function(done) {
+      ftpClient.download(
+        config.get('logshipper.ftp.remote_ip.test_file'),
+        './',
+        path.join(
+          __dirname,
+          '../../common',
+          config.get('logshipper.ftp.remote_ip.download')
+        ),
+        function() {
+          setTimeout(function() {
+            fs.exists(
+              path.join(
+                __dirname,
+                '../../common',
+                config.get('logshipper.ftp.remote_ip.download'),
+                config.get('logshipper.ftp.remote_ip.test_file')
+              ),
+              function(exists) {
+                if (exists) {
+                  fs.unlink(
+                    path.join(
+                      __dirname,
+                      '../../common',
+                      config.get('logshipper.ftp.remote_ip.download'),
+                      config.get('logshipper.ftp.remote_ip.test_file')
+                    ),
+                    function() {
+                      done();
+                    }
+                  );
+                } else {
+                  done(new Error('Test file is not found'));
+                  throw new Error('Test file is not found');
+                }
+              });
+          }, 5000);
+        });
+    });
+
     it('should send requests to recently created domain config to generate logs in 2 minutes', function(done) {
       setTimeout(function() {
         var productionProxyServers = proxyServers
@@ -506,75 +618,133 @@ describe('Functional check', function() {
       }, 2 * 60 * 1000);
     });
 
-    it('should connect to remote ftp server', function(done) {
-      try {
-        ftpClient = new ftps({
-          protocol: 'ftp',
-          host: remoteFTPLsJ.destination_host,
-          username: remoteFTPLsJ.destination_username,
-          password: remoteFTPLsJ.destination_password,
-          port: (remoteFTPLsJ.destination_port || 21),
-          requiresPassword: (remoteFTPLsJ.destination_password !== ''),
-          retries: 1,
-          timeout: 5,
-        });
-      } catch (error) {
-        return done(error);
-      }
-      done();
-    });
+    // it('should find file with Job Id in home directory', function(done) {
+    //   // console.log('remoteFTPLsJ.id', remoteFTPLsJ.id)
+    //   var regEx = new RegExp('' + remoteFTPLsJ.id, 'g');
+    //   setTimeout(function() {
+    //     ftpClient.cd('~/')
+    //       .pwd()
+    //       .ls().exec(function(err, data) {
+    //         if (!err && !data.error) {
+    //           // console.log('regEx.test(data)', regEx, remoteFTPLsJ.id, regEx.test(data.data), data.data)
+    //           if (!regEx.test(data.data)) {
+    //             return done(new Error('File with Job Id in home directory not found'));
+    //           }
+    //           return done();
+    //         } else {
+    //           done(new Error('Could not get list files from remote ftp server'));
+    //         }
+    //       });
+
+    //   }, 1 * 60 * 1000);
     // });
-
-    it('should get list files from home directory', function(done) {
-      ftpClient.cd('~/').ls()
-        .exec(function(err, data) {
-          if (err || data.error) {
-            return done(new Error('Error getting list files from home directory '));
-          }
-          done();
-        });
-    });
-
-    it('should find file with Job Id in home directory', function(done) {
-      // console.log('remoteFTPLsJ.id', remoteFTPLsJ.id)
-      var regEx = new RegExp('' + remoteFTPLsJ.id, 'g');
-      setTimeout(function() {
-        ftpClient.cd('~/')
-          .pwd()
-          .ls().exec(function(err, data) {
-            if (!err && !data.error) {
-              // console.log('regEx.test(data)', regEx, remoteFTPLsJ.id, regEx.test(data.data), data.data)
-              if (!regEx.test(data.data)) {
-                return done(new Error('File with Job Id in home directory not found'));
-              }
-              return done();
-            } else {
-              done(new Error('Could not get list files from remote ftp server'));
-            }
-          });
-
-      }, 1 * 60 * 1000);
-    });
     // TODO: fix regEx
-    xit('should find file with logs for test domain name ', function(done) {
-      var escapedDomainName = domainConfigForTestRemoteFTPIP.domain_name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      var fileZipName = remoteFTPLsJ.id + '\\.[[a-z0-9\\.]{0,12}]*' + escapedDomainName + '.log.gz';
-      var regEx = new RegExp('' + fileZipName, 'g');
+    // xit('should find file with logs for test domain name ', function(done) {
+    //   var escapedDomainName = domainConfigForTestRemoteFTPIP.domain_name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    //   var fileZipName = remoteFTPLsJ.id + '\\.[[a-z0-9\\.]{0,12}]*' + escapedDomainName + '.log.gz';
+    //   var regEx = new RegExp('' + fileZipName, 'g');
 
-      ftpClient.cd('~/')
-        .pwd()
-        .ls()
-        .exec(function(err, data) {
-          // console.log('regEx.test(data)', regEx, fileZipName, regEx.test(data.data), data.data)
-          if (!err && !data.error) {
-            if (!regEx.test(data.data)) {
-              return done(new Error('File not found'));
+    //   ftpClient.cd('~/')
+    //     .pwd()
+    //     .ls()
+    //     .exec(function(err, data) {
+    //       // console.log('regEx.test(data)', regEx, fileZipName, regEx.test(data.data), data.data)
+    //       if (!err && !data.error) {
+    //         if (!regEx.test(data.data)) {
+    //           return done(new Error('File not found'));
+    //         }
+    //         return done();
+    //       } else {
+    //         done(new Error('Could not get list files from remote ftp server'));
+    //       }
+    //     });
+    // }); 
+
+    it('should complete logshipping job and send logs to ftp server in ' + jobMinutes +
+      ' minutes',
+      function(done) {
+        setTimeout(function() {
+          ftpClient.list('./', function(err, files) {
+            if (err) {
+              return done(err || new Error('Error find files on ftp server'));
             }
-            return done();
-          } else {
-            done(new Error('Could not get list files from remote ftp server'));
-          }
+            files.length.should.be.above(1);
+            files.forEach(function(file) {
+              if (file !== config.get('logshipper.ftp.remote_ip.test_file')) {
+                logFiles.push(file);
+              }
+            });
+            done();
+          });
+        }, jobMinutes * 60 * 1000);
+      });
+
+    it('should contain all expected fields in a Log Shipping JSON object', function(done) {
+      var filesToUnlink = [];
+      if (logFiles.length > 0) {
+        logFiles.forEach(function(file) {
+          var fileName = file;
+          ftpClient.download(
+            fileName,
+            './',
+            path.join(
+              __dirname,
+              '../../common',
+              config.get('logshipper.ftp.remote_ip.download')
+            ),
+            function() {
+              fs.readFile(path.join(
+                __dirname,
+                '../../common',
+                config.get('logshipper.ftp.remote_ip.download'),
+                fileName
+              ), function read(err, data) {
+                zlib.unzip(data, function(err, buffer) {
+                  if (err) {
+                    console.log('unzinp', err);
+                    return;
+                  }
+                  var logJSONs = buffer.toString();
+                  logJSONs = logJSONs.split('\n');
+                  logJSONs.forEach(function(js) {
+                    if (js !== undefined && js !== '') {
+                      var JSONFields = utils
+                        .checkJSONFields(JSON.parse(js), Constants.JOB_EXPECTED_FIELDS);
+                      if (JSONFields.res) {
+                        JSONFields.res.should.be.equal(true);
+                      } else {
+                        console.log('Unexpected fields: ' + JSONFields.unexpectedFields.toString());
+                        console.log('Missing Fields: ' + JSONFields.missingFields.toString());
+                      }
+                    }
+                    filesToUnlink.push(
+                      fs.unlink(
+                        path.join(
+                          __dirname,
+                          '../../common',
+                          config.get('logshipper.ftp.remote_ip.download'),
+                          fileName
+                        ),
+                        function() {
+                          console.log('Removed ' + fileName + ' from local directory');
+                        }
+                      )
+                    );
+                  });
+                });
+              });
+            });
         });
+        Promise.all(filesToUnlink)
+          .then(function() {
+            done();
+          })
+          .catch(function() {
+            throw new Error('One of files could not be removed');
+          });
+      } else {
+        done();
+      }
     });
 
     it('should stop logshipping job for ftp server', function(done) {
@@ -600,6 +770,34 @@ describe('Functional check', function() {
         .catch(function(error) {
           done(error);
         });
+    });
+
+    it('should clean up ftp server', function(done) {
+      setTimeout(function() {
+        ftpClient.list('./', function(err, files) {
+          var filesToUnlink = [];
+
+          files.forEach(function(file) {
+            if (file !== config.get('logshipper.ftp.remote_ip.test_file')) {
+              filesToUnlink.push(
+                ftpClient.delete(file, function(err, data) {
+                  if (err) {
+                    throw err;
+                  }
+                })
+              );
+            }
+          });
+
+          Promise.all(filesToUnlink)
+            .then(function() {
+              done();
+            })
+            .catch(function() {
+              done();
+            });
+        });
+      }, 1 * 1000);
     });
   });
 

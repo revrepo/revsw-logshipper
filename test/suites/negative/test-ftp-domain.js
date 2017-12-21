@@ -2,7 +2,7 @@
  *
  * REV SOFTWARE CONFIDENTIAL
  *
- * [2013] - [2016] Rev Software, Inc.
+ * [2013] - [2017] Rev Software, Inc.
  * All Rights Reserved.
  *
  * NOTICE:  All information contained herein is, and remains
@@ -25,7 +25,7 @@ var API = require('./../../common/api');
 var LogShippingJobsDP = require('./../../common/providers/data/logShippingJobs');
 var utils = require('./../../common/utils');
 
-var FtpClient = require('./../../common/ftpClient');
+var FtpClient = require('./../../common/sftpClient');
 
 describe('Negative check', function () {
 
@@ -118,16 +118,18 @@ describe('Negative check', function () {
 
     it('should fail to get response from ftp server', function (done) {
       ftpClient = new FtpClient();
-      ftpClient.connect(
-        firstLsJ.destination_host,
-        firstLsJ.destination_port,
-        firstLsJ.username,
-        firstLsJ.password,
-        function (err) {
+      var options = {
+        host: firstLsJ.destination_host,
+        port: firstLsJ.destination_port,
+        username: firstLsJ.destination_username,
+        password: firstLsJ.destination_password,
+        protocol:  firstLsJ.destination_type
+      };
+      ftpClient.connect(options, function (err) {
           if (err) {
             done();
           } else {
-            throw new Error('Connected to local ftp server somehow');
+            done(new Error('Connected to local ftp server somehow'));
           }
         });
     });
