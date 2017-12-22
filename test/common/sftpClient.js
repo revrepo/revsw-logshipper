@@ -38,7 +38,7 @@ SFtpClient.prototype.connect = function (options, callback) {
       protocol: 'sftp',
       timeout: 40,
       retries: 3,
-      autoConfirm: true, // set sftp:auto-confirm yes
+      autoConfirm: false, // set sftp:auto-confirm yes
     }, options);  
     self.client = new Client(options);
     // NOTE: check access to ftp server
