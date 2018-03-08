@@ -8,3 +8,12 @@
     missingok
     notifempty
 }
+
+# Truncate all forever log files
+/root/.forever/*.log /home/robot/.forever/*.log /home/victor/.forever/*.log
+{
+    copytruncate
+    daily
+    rotate 0
+    missingok
+}
