@@ -65,9 +65,5 @@ exports.healthCheck = function (request, reply) {
 };
 
 exports.logshipperStatus = function (request, reply) {
-  // request.server.app.logshipperStats.per_job_stats = [];
-  // LogShippingJobs.lis
-  
   return utils.renderJSON(request, reply, null, request.server.app.logshipperStats);
 };
-

@@ -115,6 +115,7 @@ if (cluster.isMaster) {
 
   server.app.logshipperStats = {
     jobs_active: 0,
+    jobs_paused: 0,
 
     jobs_collected: 0,
     jobs_logs_collected: 0,
@@ -140,6 +141,10 @@ if (cluster.isMaster) {
       switch (msg.state) {
         case 'jobs_loaded': {
           server.app.logshipperStats.jobs_active = msg.jobs_count;
+          break;
+        }
+        case 'jobs_paused_count': {
+          server.app.logshipperStats.jobs_paused = msg.jobs_count;
           break;
         }
         case 'job_collected': {
